@@ -11,8 +11,11 @@ dynamic = ["version"]
 dependencies = [
 ]
 
-[project.optional-dependencies]
 test = [
+    "black==23.7.0",
+    "pytest==7.4.0",
+    "flake8==6.1.0",
+    "mypy==1.4.1"
 ]
 
 
