@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools"]
+
+[project]
+name = "FinanceGPT"
+readme = "README.md"
+requires-python = ">=3.11"
+
+dynamic = ["version"]
+
+dependencies = [
+]
+
+[project.optional-dependencies]
+test = [
+]
+
+[tool.setuptools.dynamic]
+version = {attr = "financegpt.__version__"}
