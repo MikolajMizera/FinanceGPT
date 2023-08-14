@@ -1,5 +1,4 @@
 build
 *.egg-info
 .devcontainer
-scripts/*
 *__pycache__*
