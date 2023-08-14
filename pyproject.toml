@@ -9,6 +9,8 @@ requires-python = ">=3.11"
 dynamic = ["version"]
 
 dependencies = [
+    "dvc==3.14.0",
+    "dvc-s3==2.23.0"
 ]
 
 [project.optional-dependencies]
