@@ -1,0 +1,17 @@
+{
+    "$jsonSchema": {
+      "bsonType": "object",
+      "required": ["text", "date", "userId"],
+      "properties": {
+        "text": {
+          "bsonType": "string"
+        },
+        "date": {
+          "bsonType": "date"
+        },
+        "userId": {
+          "bsonType": "objectId"
+        }
+      }
+    }
+  }

@@ -1,0 +1,18 @@
+{
+    "$jsonSchema": {
+      "bsonType": "object",
+      "required": ["model_type"],
+      "properties": {
+        "chk_path": {
+          "bsonType": "string"
+        },
+        "api_key_env_name": {
+          "bsonType": "string"
+        },
+        "model_type": {
+          "bsonType": "string",
+          "enum": ["API", "hosted"]
+        }
+      }
+    }
+  }

@@ -1,0 +1,26 @@
+{
+    "type": "object",
+    "properties": {
+      "username": {
+        "bsonType": "string"
+      },
+      "email": {
+        "bsonType": "string",
+        "pattern": "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"
+      },
+      "password": {
+        "bsonType": "string"
+      },
+      "role": {
+        "bsonType": "string",
+        "enum": ["admin", "user", "premiumUser"]
+      },
+      "models": {
+        "bsonType": "array",
+        "items": {
+          "bsonType": "objectId"
+        }
+      }
+    },
+    "required": ["username", "email", "password", "role"]
+  }
