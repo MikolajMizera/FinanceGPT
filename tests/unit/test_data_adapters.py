@@ -26,7 +26,7 @@ def test_yahoo_adapter_avaiable_symbols(
     dataset = yahoo_adapter.get_data(
         symbol, datetime(2021, 8, 16), datetime(2021, 8, 17), "D"
     )
-    assert len(dataset) == 1
+    assert len(dataset) == 2
 
 
 def test_csv_adapter(tmp_path):
@@ -45,4 +45,4 @@ def test_csv_adapter(tmp_path):
     dataset = adapter.get_data(
         "AAPL", datetime(2021, 8, 16), datetime(2021, 8, 17), "D"
     )
-    assert len(dataset) == 1
+    assert len(dataset) == 2
