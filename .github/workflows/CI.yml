@@ -1,0 +1,44 @@
+name: CI pipeline
+
+on: [push]
+
+env:
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+jobs:
+  build_lint_unit-test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: ./.github/actions/shared-init
+      with:
+        python-version: '3.11'
+    - name: Check code formatting with Black
+      run: black --check .
+    - name: Lint with flake8
+      run: flake8 .
+    - name: Unit test with pytest
+      run: pytest tests/unit
+
+  integration_tests:
+    needs: build_lint_unit-test
+    runs-on: ubuntu-latest
+    services:
+      mongodb:
+        image: mongo:latest
+        ports:
+          - 27017:27017
+    env:
+      FINGPT_DB_HOST: localhost
+      FINGPT_DB_PORT: 27017
+      FINGPT_DB_NAME: fingpt
+    steps:
+    - uses: actions/checkout@v3
+    - uses: ./.github/actions/shared-init
+      with:
+        python-version: '3.11'
+    - name: Integration test with pytest
+      run: |
+        python setup/mongo.py
+        pytest tests/integration

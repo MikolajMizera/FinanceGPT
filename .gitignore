@@ -2,3 +2,6 @@ build
 *.egg-info
 .devcontainer
 *__pycache__*
+mongo-data
+.vscode
+.env

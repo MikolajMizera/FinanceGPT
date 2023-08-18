@@ -1,0 +1,59 @@
+{
+  "$jsonSchema": {
+      "bsonType": "object",
+      "oneOf": [
+          {
+              "required": ["type", "symbol", "time", "open", "high", "low", "close", "volume"],
+              "properties": {
+                  "type": {
+                      "bsonType": "string",
+                      "enum": ["ohlc"]
+                  },
+                  "symbol": {
+                      "bsonType": "string"
+                  },
+                  "time": {
+                      "bsonType": "date"
+                  },
+                  "open": {
+                      "bsonType": ["double", "null"]
+                  },
+                  "high": {
+                      "bsonType": ["double", "null"]
+                  },
+                  "low": {
+                      "bsonType": ["double", "null"]
+                  },
+                  "close": {
+                      "bsonType": "double"
+                  },
+                  "volume": {
+                      "bsonType": ["int", "null"]
+                  },
+                  "interval": {
+                      "bsonType": "string",
+                      "enum": ["W", "D", "H1"]
+                  }
+              }
+          },
+          {
+              "required": ["type", "symbol", "time", "text"],
+              "properties": {
+                  "type": {
+                      "bsonType": "string",
+                      "enum": ["text"]
+                  },
+                  "symbol": {
+                      "bsonType": "string"
+                  },
+                  "time": {
+                      "bsonType": "date"
+                  },
+                  "text": {
+                      "bsonType": "string"
+                  }
+              }
+          }
+      ]
+  }
+}
