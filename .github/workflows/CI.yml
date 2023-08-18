@@ -10,6 +10,7 @@ jobs:
   build_lint_unit-test:
     runs-on: ubuntu-latest
     steps:
+    - uses: actions/checkout@v3
     - uses: ./.github/actions/shared-init
       with:
         python-version: '3.11'
@@ -33,6 +34,7 @@ jobs:
       FINGPT_DB_PORT: 27017
       FINGPT_DB_NAME: fingpt
     steps:
+    - uses: actions/checkout@v3
     - uses: ./.github/actions/shared-init
       with:
         python-version: '3.11'
