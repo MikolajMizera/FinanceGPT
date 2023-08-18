@@ -7,7 +7,7 @@ env:
   AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
 jobs:
-  build_lint_unit:
+  build_lint_unit-test:
     runs-on: ubuntu-latest
     steps:
     - uses: ./.github/actions/shared-init
@@ -21,7 +21,7 @@ jobs:
       run: pytest tests/unit
 
   integration_tests:
-    needs: build_lint_unit
+    needs: build_lint_unit-test
     runs-on: ubuntu-latest
     services:
       mongodb:
@@ -33,7 +33,7 @@ jobs:
       FINGPT_DB_PORT: 27017
       FINGPT_DB_NAME: fingpt
     steps:
-    - uses: ./.github/actions/shared-steps
+    - uses: ./.github/actions/shared-init
       with:
         python-version: '3.11'
     - name: Integration test with pytest
