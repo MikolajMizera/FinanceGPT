@@ -50,5 +50,5 @@ def test_invalid_type_rise_error():
             high=2.0,
             low=0.5,
             close=1.5,
-            volume=10.8,
-        )  # type: ignore
+            volume=10.8,  # type: ignore
+        )
