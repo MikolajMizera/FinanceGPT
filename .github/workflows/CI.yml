@@ -30,7 +30,7 @@ jobs:
         ports:
           - 27017:27017
     env:
-      FINGPT_DB_HOST: mongodb
+      FINGPT_DB_HOST: localhost
       FINGPT_DB_PORT: 27017
       FINGPT_DB_NAME: fingpt
     steps:
