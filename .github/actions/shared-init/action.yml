@@ -1,14 +1,11 @@
-name: 'Shared Steps'
-description: 'Shared setup steps'
+name: 'Environment setup'
 inputs:
   python-version:
     description: 'Version of python to setup'
     required: true
 
 runs:
-  using: "composite"
   steps:
-    - uses: actions/checkout@v3
     - name: Set up Python ${{ inputs.python-version }}
       uses: actions/setup-python@v3
       with:
