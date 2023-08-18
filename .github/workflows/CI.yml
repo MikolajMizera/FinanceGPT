@@ -39,4 +39,6 @@ jobs:
       with:
         python-version: '3.11'
     - name: Integration test with pytest
-      run: pytest tests/integration
+      run: |
+        python setup/mongo.py
+        pytest tests/integration
