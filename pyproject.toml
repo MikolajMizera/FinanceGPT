@@ -11,7 +11,8 @@ dependencies = [
     "dvc==3.14.0",
     "dvc-s3==2.23.0",
     "pymongo==4.4.1",
-    "pydantic==2.2.0"
+    "pydantic==2.2.0",
+    "pandas-datareader==0.10.0"
 ]
 
 [project.optional-dependencies]
@@ -35,3 +36,6 @@ include = ["financegpt*"]
 [tool.flake8]
 ignore = ['E203']
 max-line-length = 88
+
+[tool.mypy]
+ignore_missing_imports = true

@@ -1,0 +1,117 @@
+from abc import ABC
+from abc import abstractmethod
+from datetime import datetime
+from typing import Generic
+from typing import TypeVar
+
+import pandas as pd
+import yfinance as yf
+from pandas_datareader import data as web
+
+from .data_point import DataPoint
+from .data_point import IntervalType
+from .data_point import OhlcDataPoint
+from .dataset import Dataset
+from .utils import add_interval
+from .utils import format_date
+
+yf.pdr_override()
+
+DataPointType = TypeVar("DataPointType", bound=DataPoint)
+
+
+class DataAdapter(ABC, Generic[DataPointType]):
+    def __init__(self, **kwargs):
+        self.kwargs = kwargs
+
+    @abstractmethod
+    def get_data(
+        self,
+        symbol: str,
+        start_date: datetime,
+        end_date: datetime,
+        interval: IntervalType,
+    ) -> Dataset[DataPointType]:
+        raise NotImplementedError
+
+
+class YahooOhlcApiDataAdapter(DataAdapter[OhlcDataPoint]):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    AVAIABLE_SYMBOLS = ("AAPL", "MSFT", "AMZN")
+
+    def get_data(
+        self,
+        symbol: str,
+        start_date: datetime,
+        end_date: datetime,
+        interval: IntervalType,
+    ) -> Dataset[OhlcDataPoint]:
+        # add one period of interval to end_date to get the last data point
+        end_date = add_interval(end_date, interval)
+        data = web.get_data_yahoo(
+            [symbol],
+            start=format_date(start_date),
+            end=format_date(end_date),
+            **self.kwargs,
+        )
+
+        data_points = [
+            OhlcDataPoint(
+                symbol=symbol,
+                timestamp=timestamp,
+                interval=interval or "D",
+                open=open,
+                high=high,
+                low=low,
+                close=adj_close,
+                volume=volume,
+            )
+            for timestamp, open, high, low, _, adj_close, volume in data.itertuples()
+        ]
+
+        return Dataset(data_points)
+
+
+class CSVOhlcDataAdapter(DataAdapter[OhlcDataPoint]):
+    def __init__(self, data_dir: str, **kwargs):
+        super().__init__(**kwargs)
+        self._data_dir = data_dir
+
+    def get_data(
+        self,
+        symbol: str,
+        start_date: datetime,
+        end_date: datetime,
+        interval: IntervalType | None,
+    ) -> Dataset[OhlcDataPoint]:
+        path = f"{self._data_dir}/{symbol}.csv"
+        data: pd.DataFrame = pd.read_csv(path, parse_dates=True, **self.kwargs)
+        dates_mask = data.index.to_series().between(start_date, end_date)
+        data = data.loc[dates_mask]
+
+        assert data.columns.to_list() == [
+            "Open",
+            "High",
+            "Low",
+            "Close",
+            "Adj Close",
+            "Volume",
+        ]
+
+        data_points = [
+            OhlcDataPoint(
+                symbol=symbol,
+                timestamp=timestamp,
+                interval=interval or "D",
+                open=open,
+                high=high,
+                low=low,
+                close=adj_close,
+                volume=volume,
+            )
+            for timestamp, open, high, low, _, adj_close, volume in data.itertuples()
+        ]
+
+        return Dataset(data_points)
