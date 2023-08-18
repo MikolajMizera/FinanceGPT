@@ -12,7 +12,8 @@ dependencies = [
     "dvc-s3==2.23.0",
     "pymongo==4.4.1",
     "pydantic==2.2.0",
-    "pandas-datareader==0.10.0"
+    "pandas-datareader==0.10.0",
+    "yfinance==0.2.28"
 ]
 
 [project.optional-dependencies]
