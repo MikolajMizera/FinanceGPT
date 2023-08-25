@@ -3,13 +3,15 @@ from typing import Literal
 
 from pydantic import BaseModel
 
-__all__ = ["DataPoint", "OhlcDataPoint", "TextDataPoint"]
+__all__ = ["DataPoint", "OhlcDataPoint", "TextDataPoint", "IntervalType"]
+
+IntervalType = Literal["W", "D", "H1"]
 
 
 class DataPoint(BaseModel):
     symbol: str
     timestamp: datetime
-    interval: Literal["W", "D", "H1"]
+    interval: IntervalType
 
     def __str__(self) -> str:
         raise NotImplementedError
