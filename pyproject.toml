@@ -10,7 +10,8 @@ dynamic = ["version"]
 dependencies = [
     "dvc==3.14.0",
     "dvc-s3==2.23.0",
-    "pymongo==4.4.1"
+    "pymongo==4.4.1",
+    "pydantic==2.2.0"
 ]
 
 [project.optional-dependencies]
