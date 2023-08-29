@@ -4,6 +4,7 @@ import pandas as pd
 import pytest
 
 from financegpt.data.data_adapter import CSVOhlcDataAdapter
+from financegpt.data.data_adapter import CSVTextDataAdapter
 from financegpt.data.data_adapter import YahooOhlcApiDataAdapter
 from financegpt.data.utils import format_date
 
@@ -29,7 +30,7 @@ def test_yahoo_adapter_avaiable_symbols(
     assert len(dataset) == 2
 
 
-def test_csv_adapter(tmp_path):
+def test_csv_ohlc_adapter(tmp_path):
     pd.DataFrame(
         data={
             "Open": [1.0] * 2,
@@ -42,6 +43,20 @@ def test_csv_adapter(tmp_path):
         index=[datetime(2021, 8, 16), datetime(2021, 8, 17)],
     ).to_csv(tmp_path / "AAPL.csv")
     adapter = CSVOhlcDataAdapter(tmp_path, index_col=0)
+    dataset = adapter.get_data(
+        "AAPL", datetime(2021, 8, 16), datetime(2021, 8, 17), "D"
+    )
+    assert len(dataset) == 2
+
+
+def test_csv_text_adapter(tmp_path):
+    pd.DataFrame(
+        data={
+            "Text": ["This is a test"] * 2,
+        },
+        index=[datetime(2021, 8, 16), datetime(2021, 8, 17)],
+    ).to_csv(tmp_path / "AAPL.csv")
+    adapter = CSVTextDataAdapter(tmp_path, index_col=0)
     dataset = adapter.get_data(
         "AAPL", datetime(2021, 8, 16), datetime(2021, 8, 17), "D"
     )
