@@ -11,6 +11,7 @@ from pandas_datareader import data as web
 from .data_point import DataPoint
 from .data_point import IntervalType
 from .data_point import OhlcDataPoint
+from .data_point import TextDataPoint
 from .dataset import Dataset
 from .utils import add_interval
 from .utils import format_date
@@ -112,6 +113,38 @@ class CSVOhlcDataAdapter(DataAdapter[OhlcDataPoint]):
                 volume=volume,
             )
             for timestamp, open, high, low, _, adj_close, volume in data.itertuples()
+        ]
+
+        return Dataset(data_points)
+
+
+class CSVTextDataAdapter(DataAdapter[TextDataPoint]):
+    def __init__(self, data_dir: str, **kwargs):
+        super().__init__(**kwargs)
+        self._data_dir = data_dir
+
+    def get_data(
+        self,
+        symbol: str,
+        start_date: datetime,
+        end_date: datetime,
+        interval: IntervalType | None,
+    ) -> Dataset[TextDataPoint]:
+        path = f"{self._data_dir}/{symbol}.csv"
+        data: pd.DataFrame = pd.read_csv(path, parse_dates=True, **self.kwargs)
+        dates_mask = data.index.to_series().between(start_date, end_date)
+        data = data.loc[dates_mask]
+
+        assert data.columns.to_list() == ["Text"]
+
+        data_points = [
+            TextDataPoint(
+                symbol=symbol,
+                timestamp=timestamp,
+                interval=interval or "D",
+                text=text,
+            )
+            for timestamp, text in data.itertuples()
         ]
 
         return Dataset(data_points)
