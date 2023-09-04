@@ -79,3 +79,27 @@ class PromptFactory:
             Prompt(template=template, data_points=data_window.data)
             for data_window in self._get_next_data_points(dataset)
         ]
+
+
+class PromptCollection:
+    def __init__(self, prompts: list[Prompt]):
+        self._prompts = prompts
+
+    @property
+    def prompts(self) -> list[Prompt]:
+        return self._prompts
+
+    def __iter__(self):
+        return iter(self._prompts)
+
+    def __len__(self):
+        return len(self._prompts)
+
+    def __getitem__(self, index):
+        return self._prompts[index]
+
+    def __add__(self, other: "PromptCollection") -> "PromptCollection":
+        return PromptCollection(self.prompts + other.prompts)
+
+    def format_prompt(self) -> str:
+        return "\n".join([prompt.format_prompt() for prompt in self.prompts])

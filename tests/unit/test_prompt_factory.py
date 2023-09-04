@@ -10,25 +10,6 @@ from financegpt.prompting.prompt import PromptTemplate
 
 
 @pytest.fixture
-def ohlc_dataset_5days():
-    return Dataset(
-        data=[
-            OhlcDataPoint(
-                open=1.0,
-                high=2.0,
-                low=0.5,
-                close=1.5,
-                volume=10000,
-                timestamp=datetime.datetime(2021, 1, 1) + datetime.timedelta(days=i),
-                symbol="AAPL",
-                interval="W",
-            )
-            for i in range(5)
-        ]
-    )
-
-
-@pytest.fixture
 def text_dataset_5days():
     return Dataset(
         data=[
