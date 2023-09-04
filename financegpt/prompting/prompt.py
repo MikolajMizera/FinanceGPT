@@ -29,28 +29,52 @@ class Prompt:
 
 
 class PromptFactory:
+    """Creates prompts from a dataset and a template using a sliding window.
+    Each prompt will be created from a window of data points of size
+    `window_size` from the dataset.
+    """
+
     def __init__(
         self,
-        ohlc_template: PromptTemplate,
-        text_template: PromptTemplate,
         window_size: int,
     ):
-        self._ohlc_template = ohlc_template
-        self._text_template = text_template
+        """Create a prompt factory.
+
+        Args:
+        :param window_size: The size of the sliding window to use
+        :type window_size: int
+        """
         self._window_size = window_size
 
     def _get_next_data_points(
         self, dataset: Dataset[DataPoint]
     ) -> Generator[Dataset[DataPoint], None, None]:
-        for windowx_idx in range(0, len(dataset), self._window_size):
-            window = dataset[windowx_idx : windowx_idx + self._window_size]
-            if isinstance(window, DataPoint):
-                window = Dataset(data=[window])
-            yield window
+        """Get the next window of data points from the dataset.
+
+        Args:
+        :param dataset: The dataset to get the next window of data points from
+        :type dataset: Dataset[DataPoint]
+        :return: The next window of data points
+        :rtype: Generator[Dataset[DataPoint], None, None]
+        """
+        for windowx_idx in range(len(dataset) - self._window_size + 1):
+            yield dataset[windowx_idx : windowx_idx + self._window_size]
 
     def create_prompts(
         self, template: PromptTemplate, dataset: Dataset
     ) -> list[Prompt]:
+        """Create prompts from a dataset and a template using a sliding window.
+        Each prompt will be created from a window of data points of size
+        `window_size` from the dataset.
+
+        Args:
+        :param template: The template to use for prompts
+        :type template: PromptTemplate
+        :param dataset: The dataset to create prompts from
+        :type dataset: Dataset
+        :return: A list of prompts
+        :rtype: list[Prompt]
+        """
         return [
             Prompt(template=template, data_points=data_window.data)
             for data_window in self._get_next_data_points(dataset)
