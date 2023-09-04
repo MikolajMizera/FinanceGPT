@@ -16,6 +16,9 @@ class DataPoint(BaseModel):
     def __str__(self) -> str:
         raise NotImplementedError
 
+    def dict_for_template(self, prefix="datapoint_") -> dict[str, str]:
+        return {f"{prefix}{k}": str(v) for k, v in self.model_dump().items()}
+
 
 class OhlcDataPoint(DataPoint):
     open: float
