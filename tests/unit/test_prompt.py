@@ -7,27 +7,6 @@ from financegpt.prompting.prompt import Prompt
 
 
 @pytest.fixture
-def ohlc_template():
-    return (
-        "What is the performance of {datapoint_symbol} on {datapoint_timestamp}"
-        + " with interval {datapoint_interval}?\nThe performance of"
-        + " {datapoint_symbol} on {datapoint_timestamp} ({datapoint_interval})"
-        + " is {datapoint_open} {datapoint_high} {datapoint_low}"
-        + " {datapoint_close} {datapoint_volume}"
-    )
-
-
-@pytest.fixture
-def text_template():
-    return (
-        "What is the news for {datapoint_symbol} on {datapoint_timestamp}"
-        + " with interval {datapoint_interval}?\nThe news for"
-        + " {datapoint_symbol} on {datapoint_timestamp} ({datapoint_interval})"
-        + " is {datapoint_text}"
-    )
-
-
-@pytest.fixture
 def expected_ohlc_prompt():
     return (
         "What is the performance of AAPL on 2021-01-01 00:00:00 with interval W?"

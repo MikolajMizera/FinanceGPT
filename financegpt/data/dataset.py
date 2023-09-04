@@ -1,27 +1,34 @@
 from typing import Generic
-from typing import List
+from typing import overload
+from typing import SupportsIndex
 from typing import TypeVar
 
 from .data_point import DataPoint
 
 __all__ = ["Dataset"]
 
-DataPointType = TypeVar("DataPointType", bound=DataPoint)
+DataPointType = TypeVar("DataPointType", bound=DataPoint, covariant=True)
 
 
 class Dataset(Generic[DataPointType]):
-    def __init__(self, data: List[DataPointType]):
+    def __init__(self, data: list[DataPointType]):
         self._data = data
 
     @property
-    def data(self) -> List[DataPointType]:
+    def data(self) -> list[DataPointType]:
         return self._data
 
-    def __getitem__(
-        self, index: int | slice
-    ) -> DataPointType | "Dataset[DataPointType]":
+    @overload
+    def __getitem__(self, index: SupportsIndex) -> DataPointType:
+        ...
+
+    @overload
+    def __getitem__(self, index: slice) -> "Dataset[DataPointType]":
+        ...
+
+    def __getitem__(self, index):
         if isinstance(index, slice):
-            return Dataset(self._data[index])
+            return Dataset(data=self._data[index])
         else:
             return self._data[index]
 
