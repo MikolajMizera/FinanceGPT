@@ -1,4 +1,6 @@
-from typing import Generic, List, TypeVar
+from typing import Generic
+from typing import List
+from typing import TypeVar
 
 from .data_point import DataPoint
 
@@ -15,8 +17,13 @@ class Dataset(Generic[DataPointType]):
     def data(self) -> List[DataPointType]:
         return self._data
 
-    def __getitem__(self, index: int) -> DataPointType:
-        return self._data[index]
+    def __getitem__(
+        self, index: int | slice
+    ) -> DataPointType | "Dataset[DataPointType]":
+        if isinstance(index, slice):
+            return Dataset(self._data[index])
+        else:
+            return self._data[index]
 
     def __len__(self) -> int:
         return len(self._data)
