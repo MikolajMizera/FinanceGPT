@@ -11,7 +11,7 @@ COLLECTIONS = (
     "data_points",
     "inference_results",
     "models",
-    "prompts",
+    "submitted_prompts",
     "users",
 )
 

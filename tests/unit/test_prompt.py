@@ -68,12 +68,13 @@ def test_text_template_parsing(
 def test_create_prompt_ohlc(
     ohlc_data_point: OhlcDataPoint, ohlc_template: str, expected_ohlc_prompt: str
 ):
+    data_point_dict = ohlc_data_point.dict_for_template()
     prompt = Prompt(
         template=PromptTemplate(
-            input_variables=list(ohlc_data_point.dict_for_template().keys()),
+            input_variables=list(data_point_dict.keys()),
             template=ohlc_template,
         ),
-        data_points=[ohlc_data_point],
+        template_data=[data_point_dict],
     )
     prompt_str = prompt.format_prompt()
     assert prompt_str == expected_ohlc_prompt
@@ -82,12 +83,13 @@ def test_create_prompt_ohlc(
 def test_create_prompt_text(
     text_data_point: TextDataPoint, text_template: str, expected_text_prompt: str
 ):
+    data_point_dict = text_data_point.dict_for_template()
     prompt = Prompt(
         template=PromptTemplate(
-            input_variables=list(text_data_point.dict_for_template().keys()),
+            input_variables=list(data_point_dict.keys()),
             template=text_template,
         ),
-        data_points=[text_data_point],
+        template_data=[data_point_dict],
     )
     prompt_str = prompt.format_prompt()
     assert prompt_str == expected_text_prompt
@@ -96,12 +98,13 @@ def test_create_prompt_text(
 def test_create_prompt_ohlc_multiple(
     ohlc_data_point: OhlcDataPoint, ohlc_template: str, expected_ohlc_prompt: str
 ):
+    data_point_dict = ohlc_data_point.dict_for_template()
     prompt = Prompt(
         template=PromptTemplate(
-            input_variables=list(ohlc_data_point.dict_for_template().keys()),
+            input_variables=list(data_point_dict.keys()),
             template=ohlc_template,
         ),
-        data_points=[ohlc_data_point, ohlc_data_point],
+        template_data=[data_point_dict, data_point_dict],
     )
     prompt_str = prompt.format_prompt()
     assert prompt_str == (expected_ohlc_prompt + "\n" + expected_ohlc_prompt)
@@ -110,12 +113,13 @@ def test_create_prompt_ohlc_multiple(
 def test_create_prompt_text_multiple(
     text_data_point: TextDataPoint, text_template: str, expected_text_prompt: str
 ):
+    data_point_dict = text_data_point.dict_for_template()
     prompt = Prompt(
         template=PromptTemplate(
-            input_variables=list(text_data_point.dict_for_template().keys()),
+            input_variables=list(data_point_dict.keys()),
             template=text_template,
         ),
-        data_points=[text_data_point, text_data_point],
+        template_data=[data_point_dict, data_point_dict],
     )
     prompt_str = prompt.format_prompt()
     assert prompt_str == (expected_text_prompt + "\n" + expected_text_prompt)
@@ -130,6 +134,6 @@ def test_create_prompt_invalid_data_type(
                 input_variables=list(text_data_point.dict_for_template().keys()),
                 template=text_template,
             ),
-            data_points=[ohlc_data_point],
+            template_data=[ohlc_data_point.dict_for_template()],
         )
         _ = prompt.format_prompt()

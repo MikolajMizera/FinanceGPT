@@ -7,25 +7,23 @@ from financegpt.data.dataset import Dataset
 
 
 class Prompt:
-    def __init__(self, template: PromptTemplate, data_points: list[DataPoint]):
+    def __init__(self, template: PromptTemplate, template_data: list[dict[str, str]]):
         self._template = template
-        self._data_points = data_points
+        self._template_data = template_data
 
     def format_prompt(self) -> str:
         assert all(
-            input_var in self._data_points[0].dict_for_template()
+            input_var in self._template_data[0]
             for input_var in self._template.input_variables
         ), "Input variables must match data point keys, provided data point is "
-        f"of type {type(self._data_points[0])}"
+        f"contains {self._template_data}"
 
         return "\n".join(
-            [
-                self._template.format(
-                    **data_point.dict_for_template(prefix="datapoint_")
-                )
-                for data_point in self._data_points
-            ]
+            [self._template.format(**data) for data in self._template_data]
         )
+
+    def __str__(self) -> str:
+        return self.format_prompt()
 
 
 class PromptFactory:
@@ -34,10 +32,7 @@ class PromptFactory:
     `window_size` from the dataset.
     """
 
-    def __init__(
-        self,
-        window_size: int,
-    ):
+    def __init__(self, window_size: int):
         """Create a prompt factory.
 
         Args:
@@ -76,7 +71,12 @@ class PromptFactory:
         :rtype: list[Prompt]
         """
         return [
-            Prompt(template=template, data_points=data_window.data)
+            Prompt(
+                template=template,
+                template_data=[
+                    dp.dict_for_template(prefix="datapoint_") for dp in data_window.data
+                ],
+            )
             for data_window in self._get_next_data_points(dataset)
         ]
 
