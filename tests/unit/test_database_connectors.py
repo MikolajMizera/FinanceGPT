@@ -5,7 +5,7 @@ import pytest
 from pydantic import ValidationError
 
 from financegpt.data.data_connector import DATA_COLLECTION
-from financegpt.data.data_connector import MongoDataConnector
+from financegpt.data.data_connector import MongoDBConnector
 from financegpt.data.data_point import OhlcDataPoint
 from financegpt.data.data_point import TextDataPoint
 from financegpt.data.dataset import Dataset
@@ -51,7 +51,7 @@ def text_dataset(text_records):
 
 @pytest.fixture
 def mocked_mongo_data_connector():
-    mongo_data_connector = MongoDataConnector(
+    mongo_data_connector = MongoDBConnector(
         username="username",
         password="password",
         host="host",
@@ -64,7 +64,7 @@ def mocked_mongo_data_connector():
 
 @pytest.mark.parametrize("dataset_name", ["ohlc_dataset", "text_dataset"])
 def test_store_data_points(
-    mocked_mongo_data_connector: MongoDataConnector, dataset_name: str, request
+    mocked_mongo_data_connector: MongoDBConnector, dataset_name: str, request
 ):
     dataset: Dataset = request.getfixturevalue(dataset_name)
     mocked_mongo_data_connector.store_data(dataset)
@@ -80,7 +80,7 @@ def test_store_data_points(
     [("ohlc_records", "ohlc_dataset"), ("text_records", "text_dataset")],
 )
 def test_get_data_points(
-    mocked_mongo_data_connector: MongoDataConnector,
+    mocked_mongo_data_connector: MongoDBConnector,
     records: str,
     dataset_name: str,
     request,
@@ -111,7 +111,7 @@ def test_get_data_points(
     [("ohlc", "_convert_text_data_points"), ("text", "_convert_ohlc_data_points")],
 )
 def test_invalid_data_point_type(
-    mocked_mongo_data_connector: MongoDataConnector, context: tuple[str, str], request
+    mocked_mongo_data_connector: MongoDBConnector, context: tuple[str, str], request
 ):
     input_data_type, convert_method_name = context
     records = request.getfixturevalue(f"{input_data_type}_records")

@@ -16,7 +16,7 @@ from financegpt.data.dataset import Dataset
 DATA_COLLECTION = "data"
 
 
-class DataConnector(DataAdapter[DataPoint], ABC):
+class DBConnector(DataAdapter[DataPoint], ABC):
     """
     An interface for data connectors. Data connectors are responsible for
     storing and retrieving data from a data source. Retrieving data is done
@@ -39,7 +39,7 @@ class DataConnector(DataAdapter[DataPoint], ABC):
         raise NotImplementedError
 
 
-class MongoDataConnector(DataConnector):
+class MongoDBConnector(DBConnector):
     def __init__(self, username, password, host, port, db_name, **kwargs):
         super().__init__(**kwargs)
 
