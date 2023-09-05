@@ -34,3 +34,6 @@ class Dataset(Generic[DataPointType]):
 
     def __len__(self) -> int:
         return len(self._data)
+
+    def __iter__(self):
+        return iter(self._data)
