@@ -1,9 +1,22 @@
 from typing import Generator
+from typing import Literal
 
 from langchain.prompts.prompt import PromptTemplate
+from pydantic import BaseModel
 
 from financegpt.data.data_point import DataPoint
 from financegpt.data.dataset import Dataset
+
+
+class TemplateData(BaseModel):
+    input_variables: list[str]
+    template: str
+    prompt_type: Literal["ohlc", "text"]
+
+    def get_template(self) -> PromptTemplate:
+        return PromptTemplate(
+            input_variables=self.input_variables, template=self.template
+        )
 
 
 class Prompt:
