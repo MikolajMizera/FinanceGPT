@@ -1,10 +1,12 @@
-from typing import Generic, List, TypeVar
+from typing import Generic
+from typing import List
+from typing import TypeVar
 
 from .data_point import DataPoint
 
 __all__ = ["Dataset"]
 
-DataPointType = TypeVar("DataPointType", bound=DataPoint)
+DataPointType = TypeVar("DataPointType", bound=DataPoint, covariant=True)
 
 
 class Dataset(Generic[DataPointType]):
@@ -20,3 +22,6 @@ class Dataset(Generic[DataPointType]):
 
     def __len__(self) -> int:
         return len(self._data)
+
+    def __iter__(self):
+        return iter(self._data)
