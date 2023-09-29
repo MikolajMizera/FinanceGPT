@@ -24,7 +24,7 @@ def yahoo_adapter():
 def test_yahoo_adapter_avaiable_symbols(
     symbol: str, yahoo_adapter: YahooOhlcApiDataAdapter
 ):
-    dataset = yahoo_adapter.get_data(
+    dataset = yahoo_adapter.get_dataset(
         symbol, datetime(2021, 8, 16), datetime(2021, 8, 17), "D"
     )
     assert len(dataset) == 2
@@ -43,7 +43,7 @@ def test_csv_ohlc_adapter(tmp_path):
         index=[datetime(2021, 8, 16), datetime(2021, 8, 17)],
     ).to_csv(tmp_path / "AAPL.csv")
     adapter = CSVOhlcDataAdapter(tmp_path, index_col=0)
-    dataset = adapter.get_data(
+    dataset = adapter.get_dataset(
         "AAPL", datetime(2021, 8, 16), datetime(2021, 8, 17), "D"
     )
     assert len(dataset) == 2
@@ -57,7 +57,7 @@ def test_csv_text_adapter(tmp_path):
         index=[datetime(2021, 8, 16), datetime(2021, 8, 17)],
     ).to_csv(tmp_path / "AAPL.csv")
     adapter = CSVTextDataAdapter(tmp_path, index_col=0)
-    dataset = adapter.get_data(
+    dataset = adapter.get_dataset(
         "AAPL", datetime(2021, 8, 16), datetime(2021, 8, 17), "D"
     )
     assert len(dataset) == 2

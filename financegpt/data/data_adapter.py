@@ -26,7 +26,7 @@ class DataAdapter(ABC, Generic[DataPointType]):
         self.kwargs = kwargs
 
     @abstractmethod
-    def get_data(
+    def get_dataset(
         self,
         symbol: str,
         start_date: datetime,
@@ -42,7 +42,7 @@ class YahooOhlcApiDataAdapter(DataAdapter[OhlcDataPoint]):
 
     AVAIABLE_SYMBOLS = ("AAPL", "MSFT", "AMZN")
 
-    def get_data(
+    def get_dataset(
         self,
         symbol: str,
         start_date: datetime,
@@ -80,7 +80,7 @@ class CSVOhlcDataAdapter(DataAdapter[OhlcDataPoint]):
         super().__init__(**kwargs)
         self._data_dir = data_dir
 
-    def get_data(
+    def get_dataset(
         self,
         symbol: str,
         start_date: datetime,
@@ -123,7 +123,7 @@ class CSVTextDataAdapter(DataAdapter[TextDataPoint]):
         super().__init__(**kwargs)
         self._data_dir = data_dir
 
-    def get_data(
+    def get_dataset(
         self,
         symbol: str,
         start_date: datetime,

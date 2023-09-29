@@ -6,12 +6,13 @@ from typing import Any
 from pydantic import ValidationError
 from pymongo import MongoClient
 
+from ..prompting.prompt import TemplateData
 from .data_adapter import DataAdapter
 from .data_point import DataPoint
+from .data_point import IntervalType
 from .data_point import OhlcDataPoint
 from .data_point import TextDataPoint
-from financegpt.data.data_point import IntervalType
-from financegpt.data.dataset import Dataset
+from .dataset import Dataset
 
 DATA_COLLECTION = "data"
 
@@ -35,7 +36,15 @@ class DBConnector(DataAdapter[DataPoint], ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def store_data(self, dataset: Dataset[DataPoint]):
+    def store_dataset(self, dataset: Dataset[DataPoint]):
+        raise NotImplementedError
+
+    @abstractmethod
+    def store_templates(self, templates: list[TemplateData]):
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_templates(self, filter: dict[str, str] | None = None) -> list[TemplateData]:
         raise NotImplementedError
 
 
@@ -57,7 +66,7 @@ class MongoDBConnector(DBConnector):
     def __exit__(self, exc_type, exc_value, traceback):
         self._client.close()
 
-    def store_data(self, dataset: Dataset[DataPoint]):
+    def store_dataset(self, dataset: Dataset[DataPoint]):
         for data_point in dataset:
             self._client[self._db_name][DATA_COLLECTION].insert_one(
                 data_point.model_dump()
@@ -73,7 +82,7 @@ class MongoDBConnector(DBConnector):
     ) -> list[TextDataPoint]:
         return [TextDataPoint(**data_point) for data_point in data_points]
 
-    def get_data(
+    def get_dataset(
         self,
         symbol: str,
         start_date: datetime,
@@ -98,3 +107,15 @@ class MongoDBConnector(DBConnector):
             return Dataset(data=self._convert_ohlc_data_points(data))
         except ValidationError:
             return Dataset(data=self._convert_text_data_points(data))
+
+    def store_templates(self, templates: list[TemplateData]):
+        for template in templates:
+            self._client[self._db_name]["templates"].insert_one(template.model_dump())
+
+    def get_templates(self, filter: dict[str, str] | None = None) -> list[TemplateData]:
+        return [
+            TemplateData(**template)
+            for template in self._client[self._db_name]["templates"].find(
+                filter, projection={"_id": False}
+            )
+        ]
