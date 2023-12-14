@@ -25,6 +25,9 @@ class DBConnector(DataAdapter[DataPoint], ABC):
     through the get_data method, which is a part of the DataAdapter interface.
     """
 
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
     @abstractmethod
     def __enter__(self):
         raise NotImplementedError
@@ -48,8 +51,9 @@ class DBConnector(DataAdapter[DataPoint], ABC):
 
 class MongoDBConnector(DBConnector):
     def __init__(
-        self, username: str, password: str, host: str, port: int, db_name: str
+        self, username: str, password: str, host: str, port: int, db_name: str, **kwargs
     ):
+        super().__init__(**kwargs)
         self._client = MongoClient(
             username=username,
             password=password,
