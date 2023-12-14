@@ -1,4 +1,5 @@
 from typing import Generator
+from typing import Iterator
 from typing import Literal
 
 from langchain.prompts.prompt import PromptTemplate
@@ -102,10 +103,10 @@ class PromptCollection:
     def prompts(self) -> list[Prompt]:
         return self._prompts
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[Prompt]:
         return iter(self._prompts)
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self._prompts)
 
     def __getitem__(self, index):
