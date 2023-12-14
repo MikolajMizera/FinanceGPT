@@ -15,6 +15,7 @@ from .data_point import TextDataPoint
 from .dataset import Dataset
 
 DATA_COLLECTION = "data"
+TEMPLATES_COLLECTION = "templates"
 
 
 class DBConnector(DataAdapter[DataPoint], ABC):
@@ -107,12 +108,14 @@ class MongoDBConnector(DBConnector):
 
     def store_templates(self, templates: list[TemplateData]):
         for template in templates:
-            self._client[self._db_name]["templates"].insert_one(template.model_dump())
+            self._client[self._db_name][TEMPLATES_COLLECTION].insert_one(
+                template.model_dump()
+            )
 
     def get_templates(self, filter: dict[str, str] | None = None) -> list[TemplateData]:
         return [
             TemplateData(**template)
-            for template in self._client[self._db_name]["templates"].find(
+            for template in self._client[self._db_name][TEMPLATES_COLLECTION].find(
                 filter, projection={"_id": False}
             )
         ]
