@@ -28,9 +28,8 @@ class OhlcDataPoint(DataPoint):
     volume: int
 
     def __str__(self) -> str:
-        return f"{self.symbol}\t{self.timestamp}\t{self.open}\t{self.high}\t"
-
-    "{self.low}\t{self.close}\t{self.volume}\t{self.interval}"
+        return f"""{self.symbol}\t{self.timestamp}\t{self.open}\t{self.high}\t
+                {self.low}\t{self.close}\t{self.volume}\t{self.interval}"""
 
 
 class TextDataPoint(DataPoint):

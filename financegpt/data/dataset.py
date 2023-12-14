@@ -1,4 +1,5 @@
 from typing import Generic
+from typing import Iterator
 from typing import overload
 from typing import SupportsIndex
 from typing import TypeVar
@@ -35,5 +36,5 @@ class Dataset(Generic[DataPointType]):
     def __len__(self) -> int:
         return len(self._data)
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[DataPointType]:
         return iter(self._data)

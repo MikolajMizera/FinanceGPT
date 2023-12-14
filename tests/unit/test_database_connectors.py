@@ -67,7 +67,7 @@ def test_store_data_points(
     mocked_mongo_data_connector: MongoDBConnector, dataset_name: str, request
 ):
     dataset: Dataset = request.getfixturevalue(dataset_name)
-    mocked_mongo_data_connector.store_data(dataset)
+    mocked_mongo_data_connector.store_dataset(dataset)
     assert len(
         mocked_mongo_data_connector._client["db_name"][
             DATA_COLLECTION
@@ -92,7 +92,7 @@ def test_get_data_points(
         DATA_COLLECTION
     ].find.return_value = records
     assert len(
-        mocked_mongo_data_connector.get_data(
+        mocked_mongo_data_connector.get_dataset(
             "AAPL", datetime(2021, 1, 1), datetime(2021, 1, 5), "W"
         )
     ) == len(dataset)

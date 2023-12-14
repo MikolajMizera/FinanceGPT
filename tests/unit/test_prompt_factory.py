@@ -7,6 +7,7 @@ from financegpt.data.data_point import TextDataPoint
 from financegpt.data.dataset import Dataset
 from financegpt.prompting.prompt import PromptFactory
 from financegpt.prompting.prompt import PromptTemplate
+from financegpt.prompting.prompt import TemplateData
 
 
 @pytest.fixture
@@ -46,17 +47,20 @@ def test_window_size(
 
 @pytest.mark.parametrize(
     "dataset_fixture,template_fixture",
-    [("ohlc_dataset_5days", "ohlc_template"), ("text_dataset_5days", "text_template")],
+    [
+        ("ohlc_dataset_5days", "ohlc_template_data"),
+        ("text_dataset_5days", "text_template_data"),
+    ],
 )
 def test_prompt_factory(request, dataset_fixture: str, template_fixture: str):
     dataset = request.getfixturevalue(dataset_fixture)
-    template = request.getfixturevalue(template_fixture)
+    template_data: TemplateData = request.getfixturevalue(template_fixture)
 
     prompt_factory_2d = PromptFactory(window_size=2)
     prompts = prompt_factory_2d.create_prompts(
         template=PromptTemplate(
-            input_variables=list(dataset[0].dict_for_template().keys()),
-            template=template,
+            input_variables=template_data.input_variables,
+            template=template_data.template,
         ),
         dataset=dataset,
     )

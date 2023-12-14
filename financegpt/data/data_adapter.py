@@ -26,7 +26,7 @@ class DataAdapter(ABC, Generic[DataPointType]):
         self.kwargs = kwargs
 
     @abstractmethod
-    def get_data(
+    def get_dataset(
         self,
         symbol: str,
         start_date: datetime,
@@ -42,7 +42,7 @@ class YahooOhlcApiDataAdapter(DataAdapter[OhlcDataPoint]):
 
     AVAIABLE_SYMBOLS = ("AAPL", "MSFT", "AMZN")
 
-    def get_data(
+    def get_dataset(
         self,
         symbol: str,
         start_date: datetime,
@@ -58,21 +58,21 @@ class YahooOhlcApiDataAdapter(DataAdapter[OhlcDataPoint]):
             **self.kwargs,
         )
 
-        data_points = [
-            OhlcDataPoint(
-                symbol=symbol,
-                timestamp=timestamp,
-                interval=interval or "D",
-                open=open,
-                high=high,
-                low=low,
-                close=adj_close,
-                volume=volume,
-            )
-            for timestamp, open, high, low, _, adj_close, volume in data.itertuples()
-        ]
-
-        return Dataset(data_points)
+        return Dataset(
+            [
+                OhlcDataPoint(
+                    symbol=symbol,
+                    timestamp=tmstmp,
+                    interval=interval or "D",
+                    open=open,
+                    high=high,
+                    low=low,
+                    close=adj_close,
+                    volume=volume,
+                )
+                for tmstmp, open, high, low, _, adj_close, volume in data.itertuples()
+            ]
+        )
 
 
 class CSVOhlcDataAdapter(DataAdapter[OhlcDataPoint]):
@@ -80,7 +80,7 @@ class CSVOhlcDataAdapter(DataAdapter[OhlcDataPoint]):
         super().__init__(**kwargs)
         self._data_dir = data_dir
 
-    def get_data(
+    def get_dataset(
         self,
         symbol: str,
         start_date: datetime,
@@ -101,21 +101,21 @@ class CSVOhlcDataAdapter(DataAdapter[OhlcDataPoint]):
             "Volume",
         ]
 
-        data_points = [
-            OhlcDataPoint(
-                symbol=symbol,
-                timestamp=timestamp,
-                interval=interval or "D",
-                open=open,
-                high=high,
-                low=low,
-                close=adj_close,
-                volume=volume,
-            )
-            for timestamp, open, high, low, _, adj_close, volume in data.itertuples()
-        ]
-
-        return Dataset(data_points)
+        return Dataset(
+            [
+                OhlcDataPoint(
+                    symbol=symbol,
+                    timestamp=tmstmp,
+                    interval=interval or "D",
+                    open=open,
+                    high=high,
+                    low=low,
+                    close=adj_close,
+                    volume=volume,
+                )
+                for tmstmp, open, high, low, _, adj_close, volume in data.itertuples()
+            ]
+        )
 
 
 class CSVTextDataAdapter(DataAdapter[TextDataPoint]):
@@ -123,7 +123,7 @@ class CSVTextDataAdapter(DataAdapter[TextDataPoint]):
         super().__init__(**kwargs)
         self._data_dir = data_dir
 
-    def get_data(
+    def get_dataset(
         self,
         symbol: str,
         start_date: datetime,
@@ -137,14 +137,14 @@ class CSVTextDataAdapter(DataAdapter[TextDataPoint]):
 
         assert data.columns.to_list() == ["Text"]
 
-        data_points = [
-            TextDataPoint(
-                symbol=symbol,
-                timestamp=timestamp,
-                interval=interval or "D",
-                text=text,
-            )
-            for timestamp, text in data.itertuples()
-        ]
-
-        return Dataset(data_points)
+        return Dataset(
+            [
+                TextDataPoint(
+                    symbol=symbol,
+                    timestamp=timestamp,
+                    interval=interval or "D",
+                    text=text,
+                )
+                for timestamp, text in data.itertuples()
+            ]
+        )

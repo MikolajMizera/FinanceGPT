@@ -6,6 +6,7 @@ import pytest
 from financegpt.data.data_point import OhlcDataPoint
 from financegpt.data.data_point import TextDataPoint
 from financegpt.data.dataset import Dataset
+from financegpt.prompting.prompt import TemplateData
 
 
 @pytest.fixture
@@ -33,23 +34,45 @@ def text_data_point():
 
 
 @pytest.fixture
-def ohlc_template():
-    return (
-        "What is the performance of {datapoint_symbol} on {datapoint_timestamp}"
-        + " with interval {datapoint_interval}?\nThe performance of"
-        + " {datapoint_symbol} on {datapoint_timestamp} ({datapoint_interval})"
-        + " is {datapoint_open} {datapoint_high} {datapoint_low}"
-        + " {datapoint_close} {datapoint_volume}"
+def ohlc_template_data() -> TemplateData:
+    return TemplateData(
+        input_variables=[
+            "datapoint_symbol",
+            "datapoint_timestamp",
+            "datapoint_interval",
+            "datapoint_open",
+            "datapoint_high",
+            "datapoint_low",
+            "datapoint_close",
+            "datapoint_volume",
+        ],
+        template=(
+            "What is the performance of {datapoint_symbol} on {datapoint_timestamp}"
+            + " with interval {datapoint_interval}?\nThe performance of"
+            + " {datapoint_symbol} on {datapoint_timestamp} ({datapoint_interval})"
+            + " is {datapoint_open} {datapoint_high} {datapoint_low}"
+            + " {datapoint_close} {datapoint_volume}"
+        ),
+        prompt_type="ohlc",
     )
 
 
 @pytest.fixture
-def text_template():
-    return (
-        "What is the news for {datapoint_symbol} on {datapoint_timestamp}"
-        + " with interval {datapoint_interval}?\nThe news for"
-        + " {datapoint_symbol} on {datapoint_timestamp} ({datapoint_interval})"
-        + " is {datapoint_text}"
+def text_template_data() -> TemplateData:
+    return TemplateData(
+        input_variables=[
+            "datapoint_symbol",
+            "datapoint_timestamp",
+            "datapoint_interval",
+            "datapoint_text",
+        ],
+        template=(
+            "What is the news for {datapoint_symbol} on {datapoint_timestamp}"
+            + " with interval {datapoint_interval}?\nThe news for"
+            + " {datapoint_symbol} on {datapoint_timestamp} ({datapoint_interval})"
+            + " is {datapoint_text}"
+        ),
+        prompt_type="text",
     )
 
 
