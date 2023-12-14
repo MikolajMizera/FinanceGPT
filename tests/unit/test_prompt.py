@@ -4,6 +4,7 @@ from langchain.prompts.prompt import PromptTemplate
 from financegpt.data.data_point import OhlcDataPoint
 from financegpt.data.data_point import TextDataPoint
 from financegpt.prompting.prompt import Prompt
+from financegpt.prompting.prompt import TemplateData
 
 
 @pytest.fixture
@@ -24,20 +25,13 @@ def expected_text_prompt():
 
 
 def test_ohlc_template_parsing(
-    ohlc_data_point: OhlcDataPoint, ohlc_template: str, expected_ohlc_prompt: str
+    ohlc_data_point: OhlcDataPoint,
+    ohlc_template_data: TemplateData,
+    expected_ohlc_prompt: str,
 ):
     example_prompt = PromptTemplate(
-        input_variables=[
-            "datapoint_symbol",
-            "datapoint_timestamp",
-            "datapoint_interval",
-            "datapoint_open",
-            "datapoint_high",
-            "datapoint_low",
-            "datapoint_close",
-            "datapoint_volume",
-        ],
-        template=ohlc_template,
+        input_variables=ohlc_template_data.input_variables,
+        template=ohlc_template_data.template,
     )
 
     prompt_str = example_prompt.format(
@@ -47,16 +41,13 @@ def test_ohlc_template_parsing(
 
 
 def test_text_template_parsing(
-    text_data_point: TextDataPoint, text_template: str, expected_text_prompt: str
+    text_data_point: TextDataPoint,
+    text_template_data: TemplateData,
+    expected_text_prompt: str,
 ):
     example_prompt = PromptTemplate(
-        input_variables=[
-            "datapoint_symbol",
-            "datapoint_timestamp",
-            "datapoint_interval",
-            "datapoint_text",
-        ],
-        template=text_template,
+        input_variables=text_template_data.input_variables,
+        template=text_template_data.template,
     )
 
     prompt_str = example_prompt.format(
@@ -66,13 +57,15 @@ def test_text_template_parsing(
 
 
 def test_create_prompt_ohlc(
-    ohlc_data_point: OhlcDataPoint, ohlc_template: str, expected_ohlc_prompt: str
+    ohlc_data_point: OhlcDataPoint,
+    ohlc_template_data: TemplateData,
+    expected_ohlc_prompt: str,
 ):
     data_point_dict = ohlc_data_point.dict_for_template()
     prompt = Prompt(
         template=PromptTemplate(
-            input_variables=list(data_point_dict.keys()),
-            template=ohlc_template,
+            input_variables=ohlc_template_data.input_variables,
+            template=ohlc_template_data.template,
         ),
         template_data=[data_point_dict],
     )
@@ -81,13 +74,15 @@ def test_create_prompt_ohlc(
 
 
 def test_create_prompt_text(
-    text_data_point: TextDataPoint, text_template: str, expected_text_prompt: str
+    text_data_point: TextDataPoint,
+    text_template_data: TemplateData,
+    expected_text_prompt: str,
 ):
     data_point_dict = text_data_point.dict_for_template()
     prompt = Prompt(
         template=PromptTemplate(
-            input_variables=list(data_point_dict.keys()),
-            template=text_template,
+            input_variables=text_template_data.input_variables,
+            template=text_template_data.template,
         ),
         template_data=[data_point_dict],
     )
@@ -96,13 +91,15 @@ def test_create_prompt_text(
 
 
 def test_create_prompt_ohlc_multiple(
-    ohlc_data_point: OhlcDataPoint, ohlc_template: str, expected_ohlc_prompt: str
+    ohlc_data_point: OhlcDataPoint,
+    ohlc_template_data: TemplateData,
+    expected_ohlc_prompt: str,
 ):
     data_point_dict = ohlc_data_point.dict_for_template()
     prompt = Prompt(
         template=PromptTemplate(
-            input_variables=list(data_point_dict.keys()),
-            template=ohlc_template,
+            input_variables=ohlc_template_data.input_variables,
+            template=ohlc_template_data.template,
         ),
         template_data=[data_point_dict, data_point_dict],
     )
@@ -111,13 +108,15 @@ def test_create_prompt_ohlc_multiple(
 
 
 def test_create_prompt_text_multiple(
-    text_data_point: TextDataPoint, text_template: str, expected_text_prompt: str
+    text_data_point: TextDataPoint,
+    text_template_data: TemplateData,
+    expected_text_prompt: str,
 ):
     data_point_dict = text_data_point.dict_for_template()
     prompt = Prompt(
         template=PromptTemplate(
-            input_variables=list(data_point_dict.keys()),
-            template=text_template,
+            input_variables=text_template_data.input_variables,
+            template=text_template_data.template,
         ),
         template_data=[data_point_dict, data_point_dict],
     )
@@ -126,13 +125,15 @@ def test_create_prompt_text_multiple(
 
 
 def test_create_prompt_invalid_data_type(
-    ohlc_data_point: OhlcDataPoint, text_data_point: TextDataPoint, text_template: str
+    ohlc_data_point: OhlcDataPoint,
+    text_data_point: TextDataPoint,
+    text_template_data: TemplateData,
 ):
     with pytest.raises(AssertionError):
         prompt = Prompt(
             template=PromptTemplate(
-                input_variables=list(text_data_point.dict_for_template().keys()),
-                template=text_template,
+                input_variables=text_template_data.input_variables,
+                template=text_template_data.template,
             ),
             template_data=[ohlc_data_point.dict_for_template()],
         )

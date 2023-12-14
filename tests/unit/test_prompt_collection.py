@@ -6,15 +6,18 @@ from financegpt.prompting.prompt import Prompt
 from financegpt.prompting.prompt import PromptCollection
 from financegpt.prompting.prompt import PromptFactory
 from financegpt.prompting.prompt import PromptTemplate
+from financegpt.prompting.prompt import TemplateData
 
 
 @pytest.fixture
-def prompts(ohlc_dataset_5days: Dataset[OhlcDataPoint], ohlc_template: str):
+def prompts(
+    ohlc_dataset_5days: Dataset[OhlcDataPoint], ohlc_template_data: TemplateData
+):
     prompt_factory_2d = PromptFactory(window_size=2)
     return prompt_factory_2d.create_prompts(
         template=PromptTemplate(
-            input_variables=list(ohlc_dataset_5days[0].dict_for_template().keys()),
-            template=ohlc_template,
+            input_variables=ohlc_template_data.input_variables,
+            template=ohlc_template_data.template,
         ),
         dataset=ohlc_dataset_5days,
     )
