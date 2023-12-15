@@ -7,7 +7,7 @@ from financegpt.data.data_point import TextDataPoint
 from financegpt.data.dataset import Dataset
 from financegpt.prompting.prompt import PromptFactory
 from financegpt.prompting.prompt import PromptTemplate
-from financegpt.prompting.prompt import TemplateData
+from financegpt.prompting.prompt import RegularTemplateData
 
 
 @pytest.fixture
@@ -54,7 +54,7 @@ def test_window_size(
 )
 def test_prompt_factory(request, dataset_fixture: str, template_fixture: str):
     dataset = request.getfixturevalue(dataset_fixture)
-    template_data: TemplateData = request.getfixturevalue(template_fixture)
+    template_data: RegularTemplateData = request.getfixturevalue(template_fixture)
 
     prompt_factory_2d = PromptFactory(window_size=2)
     prompts = prompt_factory_2d.create_prompts(

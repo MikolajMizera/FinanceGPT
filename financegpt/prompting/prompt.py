@@ -2,6 +2,7 @@ from typing import Generator
 from typing import Iterator
 from typing import Literal
 
+from langchain.prompts.chat import ChatPromptTemplate
 from langchain.prompts.prompt import PromptTemplate
 from pydantic import BaseModel
 
@@ -11,6 +12,11 @@ from financegpt.data.dataset import Dataset
 
 class TemplateData(BaseModel):
     input_variables: list[str]
+    prompt_type: Literal["ohlc", "text"]
+
+
+class RegularTemplateData(TemplateData):
+    input_variables: list[str]
     template: str
     prompt_type: Literal["ohlc", "text"]
 
@@ -18,6 +24,13 @@ class TemplateData(BaseModel):
         return PromptTemplate(
             input_variables=self.input_variables, template=self.template
         )
+
+
+class ChatTemplateData(TemplateData):
+    templates: list[tuple[Literal["system", "human", "ai"], str]]
+
+    def get_template(self) -> ChatPromptTemplate:
+        return ChatPromptTemplate.from_messages(self.templates)
 
 
 class Prompt:
