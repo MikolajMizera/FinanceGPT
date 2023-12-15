@@ -6,7 +6,8 @@ import pytest
 from financegpt.data.data_point import OhlcDataPoint
 from financegpt.data.data_point import TextDataPoint
 from financegpt.data.dataset import Dataset
-from financegpt.prompting.prompt import TemplateData
+from financegpt.prompting.prompt import ChatTemplateData
+from financegpt.prompting.prompt import RegularTemplateData
 
 
 @pytest.fixture
@@ -34,8 +35,46 @@ def text_data_point():
 
 
 @pytest.fixture
-def ohlc_template_data() -> TemplateData:
-    return TemplateData(
+def system_msg() -> str:
+    return "You are a helpful assistant, an expert in finance."
+
+
+@pytest.fixture
+def human_msg_ohlc() -> str:
+    return (
+        "What is the performance of {datapoint_symbol} on {datapoint_timestamp}"
+        " with interval {datapoint_interval}?"
+    )
+
+
+@pytest.fixture
+def ai_msg_ohlc() -> str:
+    return (
+        "The performance of {datapoint_symbol} on {datapoint_timestamp}"
+        " ({datapoint_interval}) is {datapoint_open} {datapoint_high} {datapoint_low}"
+        " {datapoint_close} {datapoint_volume}"
+    )
+
+
+@pytest.fixture
+def human_msg_text() -> str:
+    return (
+        "What is the news for {datapoint_symbol} on {datapoint_timestamp}"
+        " with interval {datapoint_interval}?"
+    )
+
+
+@pytest.fixture
+def ai_msg_text() -> str:
+    return (
+        "The news for {datapoint_symbol} on {datapoint_timestamp}"
+        " ({datapoint_interval}) is {datapoint_text}"
+    )
+
+
+@pytest.fixture
+def ohlc_template_data(human_msg_ohlc: str, ai_msg_ohlc: str) -> RegularTemplateData:
+    return RegularTemplateData(
         input_variables=[
             "datapoint_symbol",
             "datapoint_timestamp",
@@ -46,32 +85,71 @@ def ohlc_template_data() -> TemplateData:
             "datapoint_close",
             "datapoint_volume",
         ],
-        template=(
-            "What is the performance of {datapoint_symbol} on {datapoint_timestamp}"
-            + " with interval {datapoint_interval}?\nThe performance of"
-            + " {datapoint_symbol} on {datapoint_timestamp} ({datapoint_interval})"
-            + " is {datapoint_open} {datapoint_high} {datapoint_low}"
-            + " {datapoint_close} {datapoint_volume}"
-        ),
+        template=f"{human_msg_ohlc}\n{ai_msg_ohlc}",
         prompt_type="ohlc",
     )
 
 
 @pytest.fixture
-def text_template_data() -> TemplateData:
-    return TemplateData(
+def ohlc_chat_template_data(
+    system_msg: str, human_msg_ohlc: str, ai_msg_ohlc: str
+) -> ChatTemplateData:
+    return ChatTemplateData(
+        input_variables=[
+            "datapoint_symbol",
+            "datapoint_timestamp",
+            "datapoint_interval",
+            "datapoint_open",
+            "datapoint_high",
+            "datapoint_low",
+            "datapoint_close",
+            "datapoint_volume",
+        ],
+        templates=[
+            ("system", system_msg),
+            ("human", human_msg_ohlc),
+            ("ai", ai_msg_ohlc),
+        ],
+        prompt_type="ohlc",
+    )
+
+
+@pytest.fixture
+def text_template_data(human_msg_text: str, ai_msg_text: str) -> RegularTemplateData:
+    return RegularTemplateData(
         input_variables=[
             "datapoint_symbol",
             "datapoint_timestamp",
             "datapoint_interval",
             "datapoint_text",
         ],
-        template=(
-            "What is the news for {datapoint_symbol} on {datapoint_timestamp}"
-            + " with interval {datapoint_interval}?\nThe news for"
-            + " {datapoint_symbol} on {datapoint_timestamp} ({datapoint_interval})"
-            + " is {datapoint_text}"
-        ),
+        template=f"{human_msg_text}\n{ai_msg_text}",
+        prompt_type="text",
+    )
+
+
+@pytest.fixture
+def text_chat_template_data() -> ChatTemplateData:
+    return ChatTemplateData(
+        input_variables=[
+            "datapoint_symbol",
+            "datapoint_timestamp",
+            "datapoint_interval",
+            "datapoint_text",
+        ],
+        templates=[
+            ("system", "You are a helpful assistant, an expert in finance."),
+            (
+                "human",
+                "What is the news for {datapoint_symbol} on "
+                "{datapoint_timestamp} with interval {datapoint_interval}?",
+            ),
+            (
+                "ai",
+                "The news for {datapoint_symbol} on {datapoint_timestamp}"
+                " ({datapoint_interval}) is {datapoint_text}",
+            ),
+        ],
         prompt_type="text",
     )
 

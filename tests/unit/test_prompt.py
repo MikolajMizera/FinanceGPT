@@ -3,8 +3,10 @@ from langchain.prompts.prompt import PromptTemplate
 
 from financegpt.data.data_point import OhlcDataPoint
 from financegpt.data.data_point import TextDataPoint
+from financegpt.prompting.prompt import ChatPromptTemplate
+from financegpt.prompting.prompt import ChatTemplateData
 from financegpt.prompting.prompt import Prompt
-from financegpt.prompting.prompt import TemplateData
+from financegpt.prompting.prompt import RegularTemplateData
 
 
 @pytest.fixture
@@ -24,9 +26,28 @@ def expected_text_prompt():
     )
 
 
+@pytest.fixture
+def expected_ohlc_chat_prompt():
+    return (
+        "System: You are a helpful assistant, an expert in finance.\nHuman: What"
+        " is the performance of AAPL on 2021-01-01 00:00:00 with interval W?\n"
+        "AI: The performance of AAPL on 2021-01-01 00:00:00 (W) is 1.0 2.0 0.5"
+        " 1.5 10000"
+    )
+
+
+@pytest.fixture
+def expected_text_chat_prompt():
+    return (
+        "System: You are a helpful assistant, an expert in finance.\nHuman: What"
+        " is the news for AAPL on 2021-01-01 00:00:00 with interval W?\n"
+        "AI: The news for AAPL on 2021-01-01 00:00:00 (W) is This is a test"
+    )
+
+
 def test_ohlc_template_parsing(
     ohlc_data_point: OhlcDataPoint,
-    ohlc_template_data: TemplateData,
+    ohlc_template_data: RegularTemplateData,
     expected_ohlc_prompt: str,
 ):
     example_prompt = PromptTemplate(
@@ -42,7 +63,7 @@ def test_ohlc_template_parsing(
 
 def test_text_template_parsing(
     text_data_point: TextDataPoint,
-    text_template_data: TemplateData,
+    text_template_data: RegularTemplateData,
     expected_text_prompt: str,
 ):
     example_prompt = PromptTemplate(
@@ -56,9 +77,33 @@ def test_text_template_parsing(
     assert prompt_str == expected_text_prompt
 
 
+def test_ohlc_chat_template_parsing(
+    ohlc_data_point: OhlcDataPoint,
+    ohlc_chat_template_data: ChatTemplateData,
+    expected_ohlc_chat_prompt: str,
+):
+    example_prompt = ChatPromptTemplate.from_messages(ohlc_chat_template_data.templates)
+    prompt_str = example_prompt.format(
+        **ohlc_data_point.dict_for_template(prefix="datapoint_")
+    )
+    assert prompt_str == expected_ohlc_chat_prompt
+
+
+def test_text_chat_template_parsing(
+    text_data_point: TextDataPoint,
+    text_chat_template_data: ChatTemplateData,
+    expected_text_chat_prompt: str,
+):
+    example_prompt = ChatPromptTemplate.from_messages(text_chat_template_data.templates)
+    prompt_str = example_prompt.format(
+        **text_data_point.dict_for_template(prefix="datapoint_")
+    )
+    assert prompt_str == expected_text_chat_prompt
+
+
 def test_create_prompt_ohlc(
     ohlc_data_point: OhlcDataPoint,
-    ohlc_template_data: TemplateData,
+    ohlc_template_data: RegularTemplateData,
     expected_ohlc_prompt: str,
 ):
     data_point_dict = ohlc_data_point.dict_for_template()
@@ -75,7 +120,7 @@ def test_create_prompt_ohlc(
 
 def test_create_prompt_text(
     text_data_point: TextDataPoint,
-    text_template_data: TemplateData,
+    text_template_data: RegularTemplateData,
     expected_text_prompt: str,
 ):
     data_point_dict = text_data_point.dict_for_template()
@@ -92,7 +137,7 @@ def test_create_prompt_text(
 
 def test_create_prompt_ohlc_multiple(
     ohlc_data_point: OhlcDataPoint,
-    ohlc_template_data: TemplateData,
+    ohlc_template_data: RegularTemplateData,
     expected_ohlc_prompt: str,
 ):
     data_point_dict = ohlc_data_point.dict_for_template()
@@ -109,7 +154,7 @@ def test_create_prompt_ohlc_multiple(
 
 def test_create_prompt_text_multiple(
     text_data_point: TextDataPoint,
-    text_template_data: TemplateData,
+    text_template_data: RegularTemplateData,
     expected_text_prompt: str,
 ):
     data_point_dict = text_data_point.dict_for_template()
@@ -127,7 +172,7 @@ def test_create_prompt_text_multiple(
 def test_create_prompt_invalid_data_type(
     ohlc_data_point: OhlcDataPoint,
     text_data_point: TextDataPoint,
-    text_template_data: TemplateData,
+    text_template_data: RegularTemplateData,
 ):
     with pytest.raises(AssertionError):
         prompt = Prompt(
