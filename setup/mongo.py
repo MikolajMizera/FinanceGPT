@@ -20,6 +20,14 @@ def main():
     client = MongoClient(
         f"mongodb://{environ['FINGPT_DB_HOST']}:{environ['FINGPT_DB_PORT']}/"
     )
+
+    client.admin.command(
+        "createUser",
+        environ["FINGPT_DB_USERNAME"],
+        pwd=environ["FINGPT_DB_PASSWORD"],
+        roles=[{"role": "readWrite", "db": environ["FINGPT_DB_NAME"]}],
+    )
+
     db = client[environ["FINGPT_DB_NAME"]]
 
     for collection in COLLECTIONS:
