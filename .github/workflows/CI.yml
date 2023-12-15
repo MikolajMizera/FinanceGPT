@@ -30,6 +30,8 @@ jobs:
         ports:
           - 27017:27017
     env:
+      FINGPT_DB_USERNAME: test_admin
+      FINGPT_DB_PASSWORD: test_admin
       FINGPT_DB_HOST: localhost
       FINGPT_DB_PORT: 27017
       FINGPT_DB_NAME: fingpt
