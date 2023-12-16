@@ -2,11 +2,13 @@ from abc import ABC
 from abc import abstractmethod
 from datetime import datetime
 from typing import Any
+from typing import Iterable
 
 from pydantic import ValidationError
 from pymongo import MongoClient
 
-from ..prompting.prompt import TemplateData
+from ..prompting.prompt import ChatTemplateData
+from ..prompting.prompt import RegularTemplateData
 from .data_adapter import DataAdapter
 from .data_point import DataPoint
 from .data_point import IntervalType
@@ -41,11 +43,13 @@ class DBConnector(DataAdapter[DataPoint], ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def store_templates(self, templates: list[TemplateData]):
+    def store_templates(self, templates: list[RegularTemplateData]):
         raise NotImplementedError
 
     @abstractmethod
-    def get_templates(self, filter: dict[str, str] | None = None) -> list[TemplateData]:
+    def get_templates(
+        self, filter: dict[str, str] | None = None
+    ) -> list[RegularTemplateData]:
         raise NotImplementedError
 
 
@@ -110,16 +114,30 @@ class MongoDBConnector(DBConnector):
         except ValidationError:
             return Dataset(data=self._convert_text_data_points(data))
 
-    def store_templates(self, templates: list[TemplateData]):
+    def store_templates(
+        self, templates: list[RegularTemplateData] | list[ChatTemplateData]
+    ):
         for template in templates:
             self._client[self._db_name][TEMPLATES_COLLECTION].insert_one(
                 template.model_dump()
             )
 
-    def get_templates(self, filter: dict[str, str] | None = None) -> list[TemplateData]:
-        return [
-            TemplateData(**template)
-            for template in self._client[self._db_name][TEMPLATES_COLLECTION].find(
+    def _try_parse_templates(
+        self, templates: Iterable[dict]
+    ) -> list[RegularTemplateData | ChatTemplateData]:
+        results = []
+        for template in templates:
+            try:
+                results.append(RegularTemplateData(**template))
+            except ValidationError:
+                results.append(ChatTemplateData(**template))
+        return results
+
+    def get_templates(
+        self, filter: dict[str, str] | None = None
+    ) -> list[RegularTemplateData | ChatTemplateData]:
+        return self._try_parse_templates(
+            self._client[self._db_name][TEMPLATES_COLLECTION].find(
                 filter, projection={"_id": False}
             )
-        ]
+        )

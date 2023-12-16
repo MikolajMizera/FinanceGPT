@@ -7,7 +7,13 @@ from financegpt.data.data_connector import TEMPLATES_COLLECTION
 
 
 @pytest.mark.parametrize(
-    "template_data_fixture", ["ohlc_template_data", "text_template_data"]
+    "template_data_fixture",
+    [
+        "ohlc_template_data",
+        "text_template_data",
+        "ohlc_chat_template_data",
+        "text_chat_template_data",
+    ],
 )
 def test_store_prompt_templates(template_data_fixture, request):
     template_data = request.getfixturevalue(template_data_fixture)
