@@ -19,7 +19,7 @@ def template_data_containers(
     )
 
 
-def test_prompt_collection(template_data_containers: list[TemplateDataContainer]):
+def test_container_collection(template_data_containers: list[TemplateDataContainer]):
     containers_collection = TemplateDataContainerCollection(
         containers=template_data_containers
     )
@@ -36,7 +36,9 @@ def test_prompt_collection(template_data_containers: list[TemplateDataContainer]
     )
 
 
-def test_prompt_collection_add(template_data_containers: list[TemplateDataContainer]):
+def test_container_collection_add(
+    template_data_containers: list[TemplateDataContainer],
+):
     containers_collection = TemplateDataContainerCollection(
         containers=template_data_containers
     )
