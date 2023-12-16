@@ -14,7 +14,8 @@ dependencies = [
     "pydantic==2.2.0",
     "pandas-datareader==0.10.0",
     "yfinance==0.2.28",
-    "langchain==0.0.281"
+    "langchain==0.0.281",
+    "openai==1.4.0"
 ]
 
 [project.optional-dependencies]
