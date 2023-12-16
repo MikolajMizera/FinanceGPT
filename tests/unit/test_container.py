@@ -91,10 +91,10 @@ def test_ohlc_chat_template_parsing(
 
 def test_text_chat_template_parsing(
     text_data_point: TextDataPoint,
-    text_chat_template_data: ChatTemplateMeta,
+    text_chat_template_meta: ChatTemplateMeta,
     expected_text_chat_prompt: str,
 ):
-    example_prompt = ChatPromptTemplate.from_messages(text_chat_template_data.templates)
+    example_prompt = ChatPromptTemplate.from_messages(text_chat_template_meta.templates)
     prompt_str = example_prompt.format(
         **text_data_point.dict_for_template(prefix="datapoint_")
     )

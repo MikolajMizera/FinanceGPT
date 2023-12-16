@@ -129,7 +129,7 @@ def text_template_meta(human_msg_text: str, ai_msg_text: str) -> SimpleTemplateM
 
 
 @pytest.fixture
-def text_chat_template_data() -> ChatTemplateMeta:
+def text_chat_template_meta() -> ChatTemplateMeta:
     return ChatTemplateMeta(
         input_variables=[
             "datapoint_symbol",

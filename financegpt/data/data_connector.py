@@ -7,8 +7,8 @@ from typing import Iterable
 from pydantic import ValidationError
 from pymongo import MongoClient
 
-from ..prompting.prompt import ChatTemplateData
-from ..prompting.prompt import RegularTemplateData
+from ..template.templates import ChatTemplateMeta
+from ..template.templates import SimpleTemplateMeta
 from .data_adapter import DataAdapter
 from .data_point import DataPoint
 from .data_point import IntervalType
@@ -43,13 +43,13 @@ class DBConnector(DataAdapter[DataPoint], ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def store_templates(self, templates: list[RegularTemplateData]):
+    def store_templates(self, templates: list[SimpleTemplateMeta | ChatTemplateMeta]):
         raise NotImplementedError
 
     @abstractmethod
     def get_templates(
         self, filter: dict[str, str] | None = None
-    ) -> list[RegularTemplateData]:
+    ) -> list[SimpleTemplateMeta | ChatTemplateMeta]:
         raise NotImplementedError
 
 
@@ -115,7 +115,7 @@ class MongoDBConnector(DBConnector):
             return Dataset(data=self._convert_text_data_points(data))
 
     def store_templates(
-        self, templates: list[RegularTemplateData] | list[ChatTemplateData]
+        self, templates: list[SimpleTemplateMeta] | list[ChatTemplateMeta]
     ):
         for template in templates:
             self._client[self._db_name][TEMPLATES_COLLECTION].insert_one(
@@ -124,18 +124,18 @@ class MongoDBConnector(DBConnector):
 
     def _try_parse_templates(
         self, templates: Iterable[dict]
-    ) -> list[RegularTemplateData | ChatTemplateData]:
+    ) -> list[SimpleTemplateMeta | ChatTemplateMeta]:
         results = []
         for template in templates:
             try:
-                results.append(RegularTemplateData(**template))
+                results.append(SimpleTemplateMeta(**template))
             except ValidationError:
-                results.append(ChatTemplateData(**template))
+                results.append(ChatTemplateMeta(**template))
         return results
 
     def get_templates(
         self, filter: dict[str, str] | None = None
-    ) -> list[RegularTemplateData | ChatTemplateData]:
+    ) -> list[SimpleTemplateMeta | ChatTemplateMeta]:
         return self._try_parse_templates(
             self._client[self._db_name][TEMPLATES_COLLECTION].find(
                 filter, projection={"_id": False}
