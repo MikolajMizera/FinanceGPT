@@ -9,10 +9,10 @@ from financegpt.data.data_connector import TEMPLATES_COLLECTION
 @pytest.mark.parametrize(
     "template_data_fixture",
     [
-        "ohlc_template_data",
-        "text_template_data",
-        "ohlc_chat_template_data",
-        "text_chat_template_data",
+        "ohlc_template_meta",
+        "text_template_meta",
+        "ohlc_chat_template_meta",
+        "text_chat_template_meta",
     ],
 )
 def test_store_prompt_templates(template_data_fixture, request):
