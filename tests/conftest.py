@@ -6,8 +6,8 @@ import pytest
 from financegpt.data.data_point import OhlcDataPoint
 from financegpt.data.data_point import TextDataPoint
 from financegpt.data.dataset import Dataset
-from financegpt.prompting.prompt import ChatTemplateData
-from financegpt.prompting.prompt import RegularTemplateData
+from financegpt.template.templates import ChatTemplateMeta
+from financegpt.template.templates import SimpleTemplateMeta
 
 
 @pytest.fixture
@@ -73,8 +73,8 @@ def ai_msg_text() -> str:
 
 
 @pytest.fixture
-def ohlc_template_data(human_msg_ohlc: str, ai_msg_ohlc: str) -> RegularTemplateData:
-    return RegularTemplateData(
+def ohlc_template_meta(human_msg_ohlc: str, ai_msg_ohlc: str) -> SimpleTemplateMeta:
+    return SimpleTemplateMeta(
         input_variables=[
             "datapoint_symbol",
             "datapoint_timestamp",
@@ -91,10 +91,10 @@ def ohlc_template_data(human_msg_ohlc: str, ai_msg_ohlc: str) -> RegularTemplate
 
 
 @pytest.fixture
-def ohlc_chat_template_data(
+def ohlc_chat_template_meta(
     system_msg: str, human_msg_ohlc: str, ai_msg_ohlc: str
-) -> ChatTemplateData:
-    return ChatTemplateData(
+) -> ChatTemplateMeta:
+    return ChatTemplateMeta(
         input_variables=[
             "datapoint_symbol",
             "datapoint_timestamp",
@@ -115,8 +115,8 @@ def ohlc_chat_template_data(
 
 
 @pytest.fixture
-def text_template_data(human_msg_text: str, ai_msg_text: str) -> RegularTemplateData:
-    return RegularTemplateData(
+def text_template_meta(human_msg_text: str, ai_msg_text: str) -> SimpleTemplateMeta:
+    return SimpleTemplateMeta(
         input_variables=[
             "datapoint_symbol",
             "datapoint_timestamp",
@@ -129,8 +129,8 @@ def text_template_data(human_msg_text: str, ai_msg_text: str) -> RegularTemplate
 
 
 @pytest.fixture
-def text_chat_template_data() -> ChatTemplateData:
-    return ChatTemplateData(
+def text_chat_template_meta() -> ChatTemplateMeta:
+    return ChatTemplateMeta(
         input_variables=[
             "datapoint_symbol",
             "datapoint_timestamp",
