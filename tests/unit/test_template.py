@@ -1,6 +1,6 @@
 import pytest
-from langchain.prompts.chat import ChatPromptTemplate
-from langchain.prompts.prompt import PromptTemplate
+from langchain.prompts import ChatPromptTemplate
+from langchain.prompts import PromptTemplate
 
 from financegpt.data.data_point import OhlcDataPoint
 from financegpt.data.data_point import TextDataPoint
@@ -172,3 +172,33 @@ def test_create_prompt_invalid_data_type(
             template_data=[ohlc_data_point.dict_for_template()],
         )
         _ = prompt.format_prompt()
+
+
+def test_n_shot_prompts(
+    ohlc_data_point: OhlcDataPoint,
+    text_data_point: TextDataPoint,
+    system_msg: str,
+    human_msg_ohlc: str,
+    ai_msg_ohlc: str,
+    ohlc_template_meta: SimpleTemplateMeta,
+    text_template_meta: SimpleTemplateMeta,
+):
+    container_ohlc = TemplateDataContainer(
+        template=ohlc_template_meta,
+        template_data=[ohlc_data_point.dict_for_template()] * 5,
+    )
+    container_text = TemplateDataContainer(
+        template=text_template_meta,
+        template_data=[text_data_point.dict_for_template()] * 5,
+    )
+
+    final_prompt = ChatPromptTemplate.from_messages(
+        [
+            ("system", system_msg),
+            container_ohlc.format_prompt(),
+            container_text.format_prompt(),
+            ("human", human_msg_ohlc),
+            ("ai", ai_msg_ohlc),
+        ]
+    )
+    assert len(final_prompt.format(**ohlc_data_point.dict_for_template())) == 1616
