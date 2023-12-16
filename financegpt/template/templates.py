@@ -5,6 +5,7 @@ from langchain import BasePromptTemplate
 from langchain.prompts.chat import ChatPromptTemplate
 from langchain.prompts.prompt import PromptTemplate
 from pydantic import BaseModel
+from pydantic import ValidationError
 
 
 class TemplateMeta(BaseModel):
@@ -39,3 +40,12 @@ class ChatTemplateMeta(TemplateMeta):
 
     def get_template(self) -> ChatPromptTemplate:
         return ChatPromptTemplate.from_messages(self.templates)
+
+
+class TemplateMetaFactory:
+    @staticmethod
+    def create_tempate_meta(template: dict) -> SimpleTemplateMeta | ChatTemplateMeta:
+        try:
+            return SimpleTemplateMeta(**template)
+        except ValidationError:
+            return ChatTemplateMeta(**template)

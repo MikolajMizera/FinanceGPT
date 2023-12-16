@@ -7,8 +7,8 @@ from typing import Iterable
 from pydantic import ValidationError
 from pymongo import MongoClient
 
-from ..template.templates import ChatTemplateMeta
-from ..template.templates import SimpleTemplateMeta
+from ..template.templates import TemplateMeta
+from ..template.templates import TemplateMetaFactory
 from .data_adapter import DataAdapter
 from .data_point import DataPoint
 from .data_point import IntervalType
@@ -43,13 +43,11 @@ class DBConnector(DataAdapter[DataPoint], ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def store_templates(self, templates: list[SimpleTemplateMeta | ChatTemplateMeta]):
+    def store_templates(self, templates: list[TemplateMeta]):
         raise NotImplementedError
 
     @abstractmethod
-    def get_templates(
-        self, filter: dict[str, str] | None = None
-    ) -> list[SimpleTemplateMeta | ChatTemplateMeta]:
+    def get_templates(self, filter: dict[str, str] | None = None) -> list[TemplateMeta]:
         raise NotImplementedError
 
 
@@ -114,28 +112,18 @@ class MongoDBConnector(DBConnector):
         except ValidationError:
             return Dataset(data=self._convert_text_data_points(data))
 
-    def store_templates(
-        self, templates: list[SimpleTemplateMeta] | list[ChatTemplateMeta]
-    ):
+    def store_templates(self, templates: list[TemplateMeta]):
         for template in templates:
             self._client[self._db_name][TEMPLATES_COLLECTION].insert_one(
                 template.model_dump()
             )
 
-    def _try_parse_templates(
-        self, templates: Iterable[dict]
-    ) -> list[SimpleTemplateMeta | ChatTemplateMeta]:
-        results = []
-        for template in templates:
-            try:
-                results.append(SimpleTemplateMeta(**template))
-            except ValidationError:
-                results.append(ChatTemplateMeta(**template))
-        return results
+    def _try_parse_templates(self, templates: Iterable[dict]) -> list[TemplateMeta]:
+        return [
+            TemplateMetaFactory.create_tempate_meta(tempalte) for tempalte in templates
+        ]
 
-    def get_templates(
-        self, filter: dict[str, str] | None = None
-    ) -> list[SimpleTemplateMeta | ChatTemplateMeta]:
+    def get_templates(self, filter: dict[str, str] | None = None) -> list[TemplateMeta]:
         return self._try_parse_templates(
             self._client[self._db_name][TEMPLATES_COLLECTION].find(
                 filter, projection={"_id": False}
