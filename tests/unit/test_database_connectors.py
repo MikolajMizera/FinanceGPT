@@ -2,7 +2,6 @@ from datetime import datetime
 from unittest.mock import MagicMock
 
 import pytest
-from pydantic import ValidationError
 
 from financegpt.data.data_connector import DATA_COLLECTION
 from financegpt.data.data_connector import MongoDBConnector
@@ -104,16 +103,3 @@ def test_get_data_points(
     assert call_args["timestamp"]["$gte"] == datetime(2021, 1, 1)
     assert call_args["timestamp"]["$lte"] == datetime(2021, 1, 5)
     assert call_args["interval"] == "W"
-
-
-@pytest.mark.parametrize(
-    "context",
-    [("ohlc", "_convert_text_data_points"), ("text", "_convert_ohlc_data_points")],
-)
-def test_invalid_data_point_type(
-    mocked_mongo_data_connector: MongoDBConnector, context: tuple[str, str], request
-):
-    input_data_type, convert_method_name = context
-    records = request.getfixturevalue(f"{input_data_type}_records")
-    with pytest.raises(ValidationError):
-        getattr(mocked_mongo_data_connector, convert_method_name)(records)

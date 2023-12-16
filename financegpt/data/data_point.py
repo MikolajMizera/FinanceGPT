@@ -2,6 +2,7 @@ from datetime import datetime
 from typing import Literal
 
 from pydantic import BaseModel
+from pydantic import ValidationError
 
 __all__ = ["DataPoint", "OhlcDataPoint", "TextDataPoint", "IntervalType"]
 
@@ -37,3 +38,12 @@ class TextDataPoint(DataPoint):
 
     def __str__(self) -> str:
         return f"{self.symbol}\t{self.timestamp}\t{self.text}\t{self.interval}"
+
+
+class DataPointFactory:
+    @staticmethod
+    def create_data_point(**kwargs) -> DataPoint:
+        try:
+            return OhlcDataPoint(**kwargs)
+        except ValidationError:
+            return TextDataPoint(**kwargs)
