@@ -54,7 +54,7 @@ def test_window_size(
         ("text_dataset_5days", "text_template_meta"),
     ],
 )
-def test_prompt_factory(
+def test_container_factory(
     request,
     dataset_fixture: str,
     template_fixture: str,
@@ -63,11 +63,11 @@ def test_prompt_factory(
     dataset = request.getfixturevalue(dataset_fixture)
     template_metadata: SimpleTemplateMeta = request.getfixturevalue(template_fixture)
 
-    prompts = container_factory_2d.create_containers(
+    containers = container_factory_2d.create_containers(
         template=template_metadata,
         dataset=dataset,
     )
     assert (
-        "2021-01-04 00:00:00" in prompts[-1].format_prompt()
-        and "2021-01-05 00:00:00" in prompts[-1].format_prompt()
+        "2021-01-04 00:00:00" in containers[-1].format_prompt()
+        and "2021-01-05 00:00:00" in containers[-1].format_prompt()
     )
