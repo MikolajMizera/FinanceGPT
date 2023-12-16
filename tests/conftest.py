@@ -155,6 +155,27 @@ def text_chat_template_meta() -> ChatTemplateMeta:
 
 
 @pytest.fixture
+def text_chat_inference_meta() -> ChatTemplateMeta:
+    return ChatTemplateMeta(
+        input_variables=[
+            "datapoint_symbol",
+            "datapoint_timestamp",
+            "datapoint_interval",
+            "datapoint_text",
+        ],
+        templates=[
+            ("system", "You are a helpful assistant, an expert in finance."),
+            (
+                "human",
+                "What is the news for {datapoint_symbol} on "
+                "{datapoint_timestamp} with interval {datapoint_interval}?",
+            ),
+        ],
+        prompt_type="text",
+    )
+
+
+@pytest.fixture
 def ohlc_dataset_5days():
     return Dataset(
         data=[
