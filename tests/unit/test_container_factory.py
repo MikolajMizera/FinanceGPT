@@ -5,9 +5,8 @@ import pytest
 from financegpt.data.data_point import OhlcDataPoint
 from financegpt.data.data_point import TextDataPoint
 from financegpt.data.dataset import Dataset
-from financegpt.prompting.prompt import PromptFactory
-from financegpt.prompting.prompt import PromptTemplate
-from financegpt.prompting.prompt import RegularTemplateData
+from financegpt.template.data_container import TemplateDataContainerFactory
+from financegpt.template.templates import SimpleTemplateMeta
 
 
 @pytest.fixture
@@ -25,6 +24,11 @@ def text_dataset_5days():
     )
 
 
+@pytest.fixture
+def container_factory_2d():
+    return TemplateDataContainerFactory(window_size=2)
+
+
 @pytest.mark.parametrize(
     "window,expected",
     [
@@ -36,32 +40,31 @@ def text_dataset_5days():
     ],
 )
 def test_window_size(
-    window: int,
-    expected: int,
-    ohlc_dataset_5days: Dataset[OhlcDataPoint],
+    window: int, expected: int, ohlc_dataset_5days: Dataset[OhlcDataPoint]
 ):
-    prompt_factory_2d = PromptFactory(window_size=window)
-    prompts = prompt_factory_2d._get_next_data_points(ohlc_dataset_5days)
-    assert len(list(prompts)) == expected
+    container_factory_2d = TemplateDataContainerFactory(window_size=window)
+    containers = container_factory_2d._get_next_data_points(ohlc_dataset_5days)
+    assert len(list(containers)) == expected
 
 
 @pytest.mark.parametrize(
     "dataset_fixture,template_fixture",
     [
-        ("ohlc_dataset_5days", "ohlc_template_data"),
-        ("text_dataset_5days", "text_template_data"),
+        ("ohlc_dataset_5days", "ohlc_template_meta"),
+        ("text_dataset_5days", "text_template_meta"),
     ],
 )
-def test_prompt_factory(request, dataset_fixture: str, template_fixture: str):
+def test_prompt_factory(
+    request,
+    dataset_fixture: str,
+    template_fixture: str,
+    container_factory_2d: TemplateDataContainerFactory,
+):
     dataset = request.getfixturevalue(dataset_fixture)
-    template_data: RegularTemplateData = request.getfixturevalue(template_fixture)
+    template_metadata: SimpleTemplateMeta = request.getfixturevalue(template_fixture)
 
-    prompt_factory_2d = PromptFactory(window_size=2)
-    prompts = prompt_factory_2d.create_prompts(
-        template=PromptTemplate(
-            input_variables=template_data.input_variables,
-            template=template_data.template,
-        ),
+    prompts = container_factory_2d.create_containers(
+        template=template_metadata,
         dataset=dataset,
     )
     assert (

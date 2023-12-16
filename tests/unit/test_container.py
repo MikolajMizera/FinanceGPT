@@ -1,12 +1,12 @@
 import pytest
+from langchain.prompts.chat import ChatPromptTemplate
 from langchain.prompts.prompt import PromptTemplate
 
 from financegpt.data.data_point import OhlcDataPoint
 from financegpt.data.data_point import TextDataPoint
-from financegpt.prompting.prompt import ChatPromptTemplate
-from financegpt.prompting.prompt import ChatTemplateData
-from financegpt.prompting.prompt import Prompt
-from financegpt.prompting.prompt import RegularTemplateData
+from financegpt.template.data_container import TemplateDataContainer
+from financegpt.template.templates import ChatTemplateMeta
+from financegpt.template.templates import SimpleTemplateMeta
 
 
 @pytest.fixture
@@ -47,12 +47,12 @@ def expected_text_chat_prompt():
 
 def test_ohlc_template_parsing(
     ohlc_data_point: OhlcDataPoint,
-    ohlc_template_data: RegularTemplateData,
+    ohlc_template_meta: SimpleTemplateMeta,
     expected_ohlc_prompt: str,
 ):
     example_prompt = PromptTemplate(
-        input_variables=ohlc_template_data.input_variables,
-        template=ohlc_template_data.template,
+        input_variables=ohlc_template_meta.input_variables,
+        template=ohlc_template_meta.template,
     )
 
     prompt_str = example_prompt.format(
@@ -63,12 +63,12 @@ def test_ohlc_template_parsing(
 
 def test_text_template_parsing(
     text_data_point: TextDataPoint,
-    text_template_data: RegularTemplateData,
+    text_template_meta: SimpleTemplateMeta,
     expected_text_prompt: str,
 ):
     example_prompt = PromptTemplate(
-        input_variables=text_template_data.input_variables,
-        template=text_template_data.template,
+        input_variables=text_template_meta.input_variables,
+        template=text_template_meta.template,
     )
 
     prompt_str = example_prompt.format(
@@ -79,10 +79,10 @@ def test_text_template_parsing(
 
 def test_ohlc_chat_template_parsing(
     ohlc_data_point: OhlcDataPoint,
-    ohlc_chat_template_data: ChatTemplateData,
+    ohlc_chat_template_meta: ChatTemplateMeta,
     expected_ohlc_chat_prompt: str,
 ):
-    example_prompt = ChatPromptTemplate.from_messages(ohlc_chat_template_data.templates)
+    example_prompt = ChatPromptTemplate.from_messages(ohlc_chat_template_meta.templates)
     prompt_str = example_prompt.format(
         **ohlc_data_point.dict_for_template(prefix="datapoint_")
     )
@@ -91,7 +91,7 @@ def test_ohlc_chat_template_parsing(
 
 def test_text_chat_template_parsing(
     text_data_point: TextDataPoint,
-    text_chat_template_data: ChatTemplateData,
+    text_chat_template_data: ChatTemplateMeta,
     expected_text_chat_prompt: str,
 ):
     example_prompt = ChatPromptTemplate.from_messages(text_chat_template_data.templates)
@@ -103,82 +103,71 @@ def test_text_chat_template_parsing(
 
 def test_create_prompt_ohlc(
     ohlc_data_point: OhlcDataPoint,
-    ohlc_template_data: RegularTemplateData,
+    ohlc_template_meta: SimpleTemplateMeta,
     expected_ohlc_prompt: str,
 ):
     data_point_dict = ohlc_data_point.dict_for_template()
-    prompt = Prompt(
-        template=PromptTemplate(
-            input_variables=ohlc_template_data.input_variables,
-            template=ohlc_template_data.template,
-        ),
+    container = TemplateDataContainer(
+        template=ohlc_template_meta,
         template_data=[data_point_dict],
     )
-    prompt_str = prompt.format_prompt()
+    prompt_str = container.format_prompt()
     assert prompt_str == expected_ohlc_prompt
 
 
 def test_create_prompt_text(
     text_data_point: TextDataPoint,
-    text_template_data: RegularTemplateData,
+    text_template_meta: SimpleTemplateMeta,
     expected_text_prompt: str,
 ):
     data_point_dict = text_data_point.dict_for_template()
-    prompt = Prompt(
-        template=PromptTemplate(
-            input_variables=text_template_data.input_variables,
-            template=text_template_data.template,
-        ),
+    container = TemplateDataContainer(
+        template=text_template_meta,
         template_data=[data_point_dict],
     )
-    prompt_str = prompt.format_prompt()
+    prompt_str = container.format_prompt()
     assert prompt_str == expected_text_prompt
 
 
 def test_create_prompt_ohlc_multiple(
     ohlc_data_point: OhlcDataPoint,
-    ohlc_template_data: RegularTemplateData,
+    ohlc_template_meta: SimpleTemplateMeta,
     expected_ohlc_prompt: str,
 ):
     data_point_dict = ohlc_data_point.dict_for_template()
-    prompt = Prompt(
-        template=PromptTemplate(
-            input_variables=ohlc_template_data.input_variables,
-            template=ohlc_template_data.template,
-        ),
+    container = TemplateDataContainer(
+        template=ohlc_template_meta,
         template_data=[data_point_dict, data_point_dict],
     )
-    prompt_str = prompt.format_prompt()
+    prompt_str = container.format_prompt()
     assert prompt_str == (expected_ohlc_prompt + "\n" + expected_ohlc_prompt)
 
 
 def test_create_prompt_text_multiple(
     text_data_point: TextDataPoint,
-    text_template_data: RegularTemplateData,
+    text_template_meta: SimpleTemplateMeta,
     expected_text_prompt: str,
 ):
     data_point_dict = text_data_point.dict_for_template()
-    prompt = Prompt(
-        template=PromptTemplate(
-            input_variables=text_template_data.input_variables,
-            template=text_template_data.template,
-        ),
+    container = TemplateDataContainer(
+        template=text_template_meta,
         template_data=[data_point_dict, data_point_dict],
     )
-    prompt_str = prompt.format_prompt()
+    prompt_str = container.format_prompt()
     assert prompt_str == (expected_text_prompt + "\n" + expected_text_prompt)
 
 
 def test_create_prompt_invalid_data_type(
     ohlc_data_point: OhlcDataPoint,
     text_data_point: TextDataPoint,
-    text_template_data: RegularTemplateData,
+    text_template_meta: SimpleTemplateMeta,
 ):
     with pytest.raises(AssertionError):
-        prompt = Prompt(
-            template=PromptTemplate(
-                input_variables=text_template_data.input_variables,
-                template=text_template_data.template,
+        prompt = TemplateDataContainer(
+            template=SimpleTemplateMeta(
+                input_variables=text_template_meta.input_variables,
+                template=text_template_meta.template,
+                prompt_type="text",
             ),
             template_data=[ohlc_data_point.dict_for_template()],
         )
