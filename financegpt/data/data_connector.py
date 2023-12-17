@@ -31,8 +31,11 @@ class DBConnector(DataAdapter[DataPoint], ABC):
     def __enter__(self):
         raise NotImplementedError
 
-    @abstractmethod
     def __exit__(self, exc_type, exc_value, traceback):
+        self.close()
+
+    @abstractmethod
+    def close(self):
         raise NotImplementedError
 
     @abstractmethod
@@ -64,7 +67,7 @@ class MongoDBConnector(DBConnector):
     def __enter__(self):
         return self
 
-    def __exit__(self, exc_type, exc_value, traceback):
+    def close(self):
         self._client.close()
 
     def store_dataset(self, dataset: Dataset[DataPoint]):

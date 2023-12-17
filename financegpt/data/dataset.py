@@ -38,3 +38,6 @@ class Dataset(Generic[DataPointType]):
 
     def __iter__(self) -> Iterator[DataPointType]:
         return iter(self._data)
+
+    def __add__(self, other: "Dataset[DataPointType]") -> "Dataset[DataPointType]":
+        return Dataset(self._data + other.data)
