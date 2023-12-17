@@ -1,6 +1,7 @@
-import json
 from datetime import datetime
 from typing import Any
+
+from pydantic import BaseModel
 
 from .data.data_connector import MongoDBConnector
 from .data.data_point import DataPoint
@@ -12,6 +13,14 @@ from financegpt.template.data_container import TemplateDataContainer
 from financegpt.template.data_container import TemplateDataContainerFactory
 from financegpt.template.templates import ChatTemplateMeta
 from financegpt.template.templates import TemplateMeta
+
+
+class RequestModel(BaseModel):
+    historical_data_start_date: datetime
+    historical_data_end_date: datetime
+    historical_data_interval: IntervalType
+    prediction_symbol: str
+    prediction_end_date: datetime
 
 
 class AppController:
@@ -29,39 +38,26 @@ class AppController:
     def __del__(self):
         self._db.close()
 
-    def process_request(self, request: str) -> str:
+    def process_request(self, request: RequestModel) -> str:
         """
         Processes request and returns response.
         """
-        parsed_request = self._parse_request(request)
-        requested_data = self._get_requested_data(
-            parsed_request["symbol"],
-            parsed_request["start_date"],
-            parsed_request["end_date"],
-            parsed_request["interval"],
+        requested_historical_data = self._get_requested_data(
+            symbol=request.prediction_symbol,
+            start_date=request.historical_data_start_date,
+            end_date=request.historical_data_end_date,
+            interval=request.historical_data_interval,
         )
+
         template_data_containers = self._get_template_data_container(
-            parsed_request["prediction_symbol"],
-            parsed_request["prediction_date"],
-            requested_data,
+            request.prediction_symbol,
+            request.prediction_end_date,
+            requested_historical_data,
         )
+
         inference_results = self._inference_llm(template_data_containers)
         response = self._parse_results(inference_results)
         return response
-
-    def _parse_request(self, request: str) -> dict[str, Any]:
-        """
-        Parses request and returns parsed request.
-        """
-        parsed_request = json.loads(request)
-        parsed_request["start_date"] = datetime.fromisoformat(
-            parsed_request["start_date"]
-        )
-        parsed_request["end_date"] = datetime.fromisoformat(parsed_request["end_date"])
-        parsed_request["prediction_date"] = datetime.fromisoformat(
-            parsed_request["prediction_date"]
-        )
-        return parsed_request
 
     def _get_requested_data(
         self,
@@ -138,4 +134,4 @@ class AppController:
         return self._handle_error(inference_results.error_code)
 
     def _handle_error(self, error_code: int) -> str:
-        return f"Error {error_code} occured!"
+        return f"Error {error_code} occurred!"
