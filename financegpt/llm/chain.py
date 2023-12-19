@@ -1,8 +1,8 @@
 from abc import ABC
 from abc import abstractmethod
 
-from langchain import OpenAI
-from langchain.llms.base import BaseLLM
+from langchain.chat_models import ChatOpenAI
+from langchain.chat_models.base import BaseChatModel
 from langchain.schema.output_parser import StrOutputParser
 
 from ..template.data_container import TemplateDataContainer
@@ -16,7 +16,7 @@ class BaseLLMChainInterface(ABC):
 
 
 class LLMChainInterface(BaseLLMChainInterface):
-    def __init__(self, llm: BaseLLM):
+    def __init__(self, llm: BaseChatModel):
         self._chain = llm | StrOutputParser()
 
     def predict(self, template_data: TemplateDataContainer) -> InferenceResults:
@@ -25,13 +25,13 @@ class LLMChainInterface(BaseLLMChainInterface):
         )
 
 
-AvaiableOpenAIModels = ("gpt-3.5-turbo-instruct", "gpt-4-turbo")
+AvaiableOpenAIModels = ("gpt-3.5-turbo-instruct", "gpt-3.5-turbo-1106", "gpt-4-turbo")
 
 
 class LLMChainInterfaceFactory:
     @staticmethod
-    def _create_openai_llm(llm_type: str, **kwargs) -> OpenAI:
-        return OpenAI(model=llm_type, **kwargs)
+    def _create_openai_llm(llm_type: str, **kwargs) -> ChatOpenAI:
+        return ChatOpenAI(model=llm_type, **kwargs)
 
     @staticmethod
     def create_llm_chain(llm_type: str, **kwargs) -> LLMChainInterface:

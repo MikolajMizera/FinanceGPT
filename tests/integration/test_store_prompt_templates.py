@@ -17,6 +17,7 @@ def test_store_prompt_templates(
     db_connector: MongoDBConnector, template_data_fixture, request
 ):
     template_data = request.getfixturevalue(template_data_fixture)
+    db_connector._client[db_connector._db_name][TEMPLATES_COLLECTION].delete_many({})
     try:
         db_connector.store_templates([template_data])
         recieved_templates = db_connector.get_templates()
