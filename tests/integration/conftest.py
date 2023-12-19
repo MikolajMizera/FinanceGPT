@@ -11,6 +11,7 @@ from financegpt.data.data_connector import MongoDBConnector
 from financegpt.data.data_point import OhlcDataPoint
 from financegpt.data.data_point import TextDataPoint
 from financegpt.data.dataset import Dataset
+from financegpt.template.templates import SimpleTemplateMeta
 
 
 @pytest.fixture
@@ -32,6 +33,7 @@ def test_text_data_df(
         {
             "symbol": ["djia"] * 10,
             "text": [rng.choice(["test", "test2", "test3"]) for _ in range(10)],
+            "interval": "D",
             "timestamp": pd.date_range(
                 start=test_data_date_start, end=test_data_date_end, freq="D"
             ),
@@ -58,6 +60,7 @@ def test_ohlc_data_df(
             "low": low_prices,
             "close": close_prices,
             "volume": rng.integers(0, 100, 10),
+            "interval": "D",
             "timestamp": pd.date_range(
                 start=test_data_date_start, end=test_data_date_end, freq="D"
             ),
@@ -84,26 +87,29 @@ def db_connector(connection_kwargs) -> Generator[MongoDBConnector, None, None]:
 
 @pytest.fixture
 def data_populated_db(
-    db_connector: MongoDBConnector, text_data_path: str, ohlc_data_path: str
+    db_connector: MongoDBConnector,
+    test_ohlc_data_df: pd.DataFrame,
+    test_text_data_df: pd.DataFrame,
+    ohlc_template_meta: SimpleTemplateMeta,
+    text_template_meta: SimpleTemplateMeta,
 ):
     """
     Populates the database with data from the specified paths.
     """
-    # Get the data from the files.
-    text_data = pd.read_csv(text_data_path)
-    ohlc_data = pd.read_csv(ohlc_data_path)
 
     # TODO: Move this functionality to Dataset class.
     text_dataset = Dataset(
-        [TextDataPoint(**row.to_dict()) for _, row in text_data.iterrows()]
+        [TextDataPoint(**row.to_dict()) for _, row in test_text_data_df.iterrows()]
     )
     ohlc_dataset = Dataset(
-        [OhlcDataPoint(**row.to_dict()) for _, row in ohlc_data.iterrows()]
+        [OhlcDataPoint(**row.to_dict()) for _, row in test_ohlc_data_df.iterrows()]
     )
 
     try:
         db_connector.store_dataset(text_dataset)
         db_connector.store_dataset(ohlc_dataset)
+        db_connector.store_templates([ohlc_template_meta])
+        db_connector.store_templates([text_template_meta])
         yield db_connector
     finally:
         db_connector._client[db_connector._db_name][DATA_COLLECTION].delete_many({})

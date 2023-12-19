@@ -177,6 +177,7 @@ def ohlc_dataset_5days():
 @pytest.fixture
 def example_request() -> dict[str, Any]:
     return {
+        "user_msg": "What will the AAPL do tomorrow?",
         "prediction_symbol": "AAPL",
         "prediction_end_date": datetime(2023, 12, 31),
         "historical_data_start_date": datetime(2021, 1, 1),

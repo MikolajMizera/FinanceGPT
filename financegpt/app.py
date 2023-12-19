@@ -6,6 +6,8 @@ from pydantic import BaseModel
 from .data.data_connector import MongoDBConnector
 from .data.data_point import DataPoint
 from .data.data_point import IntervalType
+from .data.data_point import OhlcDataPoint
+from .data.data_point import TextDataPoint
 from .data.dataset import Dataset
 from .llm.chain import LLMChainInterfaceFactory
 from financegpt.llm.utils import InferenceResults
@@ -16,6 +18,7 @@ from financegpt.template.templates import TemplateMeta
 
 
 class RequestModel(BaseModel):
+    user_msg: str
     historical_data_start_date: datetime
     historical_data_end_date: datetime
     historical_data_interval: IntervalType
@@ -42,6 +45,7 @@ class AppController:
         """
         Processes request and returns response.
         """
+
         requested_historical_data = self._get_requested_data(
             symbol=request.prediction_symbol,
             start_date=request.historical_data_start_date,
@@ -50,6 +54,7 @@ class AppController:
         )
 
         template_data_containers = self._get_template_data_container(
+            request.user_msg,
             request.prediction_symbol,
             request.prediction_end_date,
             requested_historical_data,
@@ -75,32 +80,38 @@ class AppController:
         """
         Returns OHLC template.
         """
-        return self._db.get_templates(filter={"type": "ohlc"})[0]
+        return self._db.get_templates(filter={"prompt_type": "ohlc"})[0]
 
     def _get_text_template(self) -> TemplateMeta:
         """
         Returns text template.
         """
-        return self._db.get_templates(filter={"type": "text"})[0]
+        return self._db.get_templates(filter={"prompt_type": "text"})[0]
 
     def _get_system_msg(self) -> str:
-        raise NotImplementedError
-
-    def _get_user_msg_template(self) -> str:
-        raise NotImplementedError
+        return (
+            "You are a helpful AI assistant. You are helping a human to predict"
+            "the stock market."
+        )
 
     def _get_template_data_container(
-        self, prediction_symbol: str, prediction_date: datetime, dataset: Dataset
+        self,
+        user_msg: str,
+        prediction_symbol: str,
+        prediction_date: datetime,
+        dataset: Dataset,
     ) -> TemplateDataContainer:
         """
         Returns template data containers.
         """
         container_factory = TemplateDataContainerFactory(window_size=self._window_size)
         ohlc_containers = container_factory.create_containers(
-            template=self._get_ohlc_template(), dataset=dataset
+            template=self._get_ohlc_template(),
+            dataset=Dataset([d for d in dataset if isinstance(d, OhlcDataPoint)]),
         )
         text_containers = container_factory.create_containers(
-            template=self._get_text_template(), dataset=dataset
+            template=self._get_text_template(),
+            dataset=Dataset([d for d in dataset if isinstance(d, TextDataPoint)]),
         )
 
         return TemplateDataContainer(
@@ -114,7 +125,7 @@ class AppController:
                         f"{ohlc_containers.format_prompt()}\n"
                         f"{text_containers.format_prompt()}",
                     ),
-                    ("human", self._get_user_msg_template()),
+                    ("human", user_msg),
                 ],
             ),
             template_data=[

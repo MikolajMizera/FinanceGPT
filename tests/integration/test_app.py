@@ -10,6 +10,7 @@ from financegpt.data.data_connector import MongoDBConnector
 @pytest.fixture
 def example_request() -> RequestModel:
     return RequestModel(
+        user_msg="What will the DJIA do tomorrow?",
         historical_data_start_date=datetime(2021, 1, 1),
         historical_data_end_date=datetime(2021, 1, 10),
         historical_data_interval="D",
@@ -18,7 +19,6 @@ def example_request() -> RequestModel:
     )
 
 
-@pytest.mark.skip(reason="Integration test not ready yet")
 def test_app_controler_integration(
     data_populated_db: MongoDBConnector,
     connection_kwargs: dict[str, str | int],
@@ -28,7 +28,7 @@ def test_app_controler_integration(
     Tests the app controller.
     """
     app = AppController(
-        llm_model="gpt-3.5-turbo-instruct",
+        llm_model="gpt-3.5-turbo-1106",
         connection_kwargs=connection_kwargs,
         window_size=2,
     )
