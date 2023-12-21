@@ -1,5 +1,3 @@
-from os import environ
-
 import pytest
 
 from financegpt.data.data_connector import MongoDBConnector
@@ -15,18 +13,16 @@ from financegpt.data.data_connector import TEMPLATES_COLLECTION
         "text_chat_template_meta",
     ],
 )
-def test_store_prompt_templates(template_data_fixture, request):
+def test_store_prompt_templates(
+    db_connector: MongoDBConnector, template_data_fixture, request
+):
     template_data = request.getfixturevalue(template_data_fixture)
-    with MongoDBConnector(
-        username=environ["FINGPT_DB_USERNAME"],
-        password=environ["FINGPT_DB_PASSWORD"],
-        host=environ["FINGPT_DB_HOST"],
-        port=int(environ["FINGPT_DB_PORT"]),
-        db_name=environ["FINGPT_DB_NAME"],
-    ) as connector:
-        try:
-            connector.store_templates([template_data])
-            recieved_templates = connector.get_templates()
-            assert len(recieved_templates) == 1
-        finally:
-            connector._client[connector._db_name][TEMPLATES_COLLECTION].delete_many({})
+    db_connector._client[db_connector._db_name][TEMPLATES_COLLECTION].delete_many({})
+    try:
+        db_connector.store_templates([template_data])
+        recieved_templates = db_connector.get_templates()
+        assert len(recieved_templates) == 1
+    finally:
+        db_connector._client[db_connector._db_name][TEMPLATES_COLLECTION].delete_many(
+            {}
+        )

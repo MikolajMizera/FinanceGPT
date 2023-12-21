@@ -1,5 +1,6 @@
 from datetime import datetime
 from datetime import timedelta
+from typing import Any
 
 import pytest
 
@@ -171,3 +172,15 @@ def ohlc_dataset_5days():
             for i in range(5)
         ]
     )
+
+
+@pytest.fixture
+def example_request() -> dict[str, Any]:
+    return {
+        "user_msg": "What will the AAPL do tomorrow?",
+        "prediction_symbol": "AAPL",
+        "prediction_end_date": datetime(2023, 12, 31),
+        "historical_data_start_date": datetime(2021, 1, 1),
+        "historical_data_end_date": datetime(2021, 12, 17),
+        "historical_data_interval": "W",
+    }
