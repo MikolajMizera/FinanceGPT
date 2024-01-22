@@ -32,7 +32,6 @@ class AppController:
         llm_model: str,
         connection_kwargs: dict[str, Any],
         window_size: int,
-        **kwargs,
     ):
         self._llm_chain = LLMChainInterfaceFactory.create_llm_chain(llm_model)
         self._db = MongoDBConnector(**connection_kwargs)
