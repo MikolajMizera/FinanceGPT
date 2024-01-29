@@ -1,11 +1,22 @@
+import logging
 from datetime import datetime
+from datetime import timedelta
 from os import environ
 
 import streamlit as st
+from dotenv import load_dotenv
 
 from financegpt.app import AppController
 from financegpt.app import RequestModel
 
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+    handlers=[logging.FileHandler("ui_server.log")],
+)
+
+load_dotenv()
 ALLOWED_INTERVALS = ("W", "D", "H1")
 DEFAULT_WINDOW_SIZE = 5
 DEFAULT_LLM_MODEL = "gpt-3.5-turbo-1106"
@@ -26,14 +37,16 @@ controller = AppController(
 
 st.title("FinanceGPT")
 # UI Controls based on RequestModel
-user_msg = st.text_area("User Message")
+user_msg = st.text_area("User Message", "Predict future performance of the asset.")
 historical_data_start_date = st.date_input(
-    "Historical Data Start Date", datetime.today()
+    "Historical Data Start Date", datetime.today() - timedelta(days=7)
 )
 historical_data_end_date = st.date_input("Historical Data End Date", datetime.today())
 historical_data_interval = st.selectbox("Historical Data Interval", ALLOWED_INTERVALS)
-prediction_symbol = st.text_input("Prediction Symbol")
-prediction_end_date = st.date_input("Prediction End Date", datetime.today())
+prediction_symbol = st.text_input("Prediction Symbol", "AAPL")
+prediction_end_date = st.date_input(
+    "Prediction End Date", datetime.today() + timedelta(days=7)
+)
 
 if st.button("Submit"):
     # Create a request model instance
