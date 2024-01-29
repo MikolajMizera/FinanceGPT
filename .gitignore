@@ -5,3 +5,4 @@ build
 mongo-data
 .vscode
 .env
+*.log
