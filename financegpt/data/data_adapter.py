@@ -1,3 +1,4 @@
+import logging
 from abc import ABC
 from abc import abstractmethod
 from datetime import datetime
@@ -19,6 +20,7 @@ from .utils import format_date
 yf.pdr_override()
 
 DataPointType = TypeVar("DataPointType", bound=DataPoint)
+OHLC_REQUIRED_COLUMNS = ["Open", "High", "Low", "Close", "Volume"]
 
 
 class DataAdapter(ABC, Generic[DataPointType]):
@@ -92,14 +94,9 @@ class CSVOhlcDataAdapter(DataAdapter[OhlcDataPoint]):
         dates_mask = data.index.to_series().between(start_date, end_date)
         data = data.loc[dates_mask]
 
-        assert data.columns.to_list() == [
-            "Open",
-            "High",
-            "Low",
-            "Close",
-            "Adj Close",
-            "Volume",
-        ]
+        logging.info(f"Loaded {len(data)} data points for {symbol}...")
+        logging.debug(f"Data columns: {data.columns.to_list()}")
+        assert all(c in data.columns for c in OHLC_REQUIRED_COLUMNS)
 
         return Dataset(
             [
