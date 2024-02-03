@@ -71,10 +71,9 @@ class MongoDBConnector(DBConnector):
         self._client.close()
 
     def store_dataset(self, dataset: Dataset[DataPoint]):
-        for data_point in dataset:
-            self._client[self._db_name][DATA_COLLECTION].insert_one(
-                data_point.model_dump()
-            )
+        self._client[self._db_name][DATA_COLLECTION].insert_many(
+            (data_point.model_dump() for data_point in dataset.data)
+        )
 
     def _parse_datapoint(self, datapoints: Iterable[dict]) -> list[DataPoint]:
         return [
