@@ -6,3 +6,4 @@ mongo-data
 .vscode
 .env
 *.log
+assets
