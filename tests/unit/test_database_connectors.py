@@ -70,8 +70,8 @@ def test_store_data_points(
     assert len(
         mocked_mongo_data_connector._client["db_name"][
             DATA_COLLECTION
-        ].insert_one.mock_calls
-    ) == len(dataset)
+        ].insert_many.mock_calls
+    )
 
 
 @pytest.mark.parametrize(
