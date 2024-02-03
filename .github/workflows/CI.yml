@@ -43,5 +43,11 @@ jobs:
         python-version: '3.11'
     - name: Integration test with pytest
       run: |
+        url="https://www.dropbox.com/scl/fi/tkwyf9ru4r0fhdbn2zv45/data.zip?rlkey=5ys7cd6iuohiureps3h9ws221&dl=0"
+        filename=$(basename "$url")
+        filename="${filename%%\?*}"
+        curl -L "$url" -o "$filename"
+        unzip "$filename" -d examples
         python setup/mongo.py
+        python setup/populate_database.py -o examples/data/ohlc/ -t examples/data/text/
         pytest tests/integration
