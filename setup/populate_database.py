@@ -1,7 +1,9 @@
 import argparse
+import json
 import logging
 import os
 from datetime import datetime
+from typing import Iterable
 
 from dotenv import load_dotenv
 
@@ -14,11 +16,12 @@ from financegpt.data.data_point import OhlcDataPoint
 from financegpt.data.data_point import TextDataPoint
 from financegpt.data.dataset import Dataset
 from financegpt.data.utils import get_db_credentials
+from financegpt.template.templates import ChatTemplateMeta
+from financegpt.template.templates import SimpleTemplateMeta
+from financegpt.template.templates import TemplateMeta
 
 DATA_START_DATE = datetime(2008, 1, 1)
 DATA_END_DATE = datetime.today()
-
-logging.basicConfig(level=logging.INFO)
 
 
 def _get_csv_files(data_dir: str) -> list[str]:
@@ -71,6 +74,39 @@ def upload_dataset_to_db(db_connection: MongoDBConnector, dataset: Dataset[DataP
     db_connection.store_dataset(dataset)
 
 
+def get_simple_templates(templates_file: str) -> Iterable[SimpleTemplateMeta]:
+    """
+    Returns a list of templates from the given directory.
+    """
+    logging.info(f"Reading templates from `{templates_file}` ...")
+    with open(templates_file, "r") as f:
+        template_json_files = json.load(f)
+        for template in template_json_files:
+            logging.debug(f"Template: {template}")
+            yield SimpleTemplateMeta(**template)
+
+
+def get_chat_templates(templates_dir) -> Iterable[ChatTemplateMeta]:
+    """
+    Returns a list of templates from the given directory.
+    """
+    logging.info(f"Reading templates from `{templates_dir}` ...")
+    with open(templates_dir, "r") as f:
+        template_json_files = json.load(f)
+        for template in template_json_files:
+            logging.debug(f"Template: {template}")
+            yield ChatTemplateMeta(**template)
+
+
+def upload_templates_to_db(
+    db_connection: MongoDBConnector, templates: Iterable[TemplateMeta]
+):
+    """
+    Uploads the templates to the database.
+    """
+    db_connection.store_templates(list(templates))
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Populate DB with data from CSV files")
     parser.add_argument(
@@ -89,6 +125,16 @@ if __name__ == "__main__":
             " Each file should be named <symbol>.csv use UNK.csv for general"
             " news, not associated with a specific stock."
         ),
+    )
+    parser.add_argument(
+        "-s",
+        "--simple_prompt_templates",
+        help=("Path to a file containing JSON with list of simple prompt templates."),
+    )
+    parser.add_argument(
+        "-c",
+        "--chat_templates",
+        help=("Path to a file containing JSON with list of chat templates."),
     )
     parser.add_argument(
         "-os",
@@ -113,6 +159,8 @@ if __name__ == "__main__":
 
     if args.verbose:
         logging.basicConfig(level=logging.DEBUG)
+    else:
+        logging.basicConfig(level=logging.INFO)
 
     if args.env:
         logging.info(f"Loading environment variables from {args.env}")
@@ -121,9 +169,15 @@ if __name__ == "__main__":
     ohlc_dataset = get_dataset_ohlc(args.ohlc_data, args.ohlc_symbols, "D")
     text_dataset = get_dataset_text(args.text_data, args.text_symbols, "D")
 
+    simple_templates = list(get_simple_templates(args.simple_prompt_templates))
+    chat_templates = list(get_chat_templates(args.chat_templates))
+    tempaltes = simple_templates + chat_templates
+
     with MongoDBConnector(**get_db_credentials()) as db_connection:
         for symbol, dataset in {**ohlc_dataset, **text_dataset}.items():
             logging.info(
                 f"Uploading dataset for {symbol} with {len(dataset)} data points..."
             )
             upload_dataset_to_db(db_connection, dataset)
+        logging.info(f"Uploading {len(tempaltes)} templates to the database...")
+        upload_templates_to_db(db_connection, tempaltes)
