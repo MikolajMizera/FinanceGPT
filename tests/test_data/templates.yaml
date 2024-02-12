@@ -1,0 +1,74 @@
+[
+    {
+        input_variables:
+        [
+            datapoint_symbol,
+            datapoint_timestamp,
+            datapoint_interval,
+            datapoint_open,
+            datapoint_high,
+            datapoint_low,
+            datapoint_close,
+            datapoint_volume
+        ],
+        prompt_type: ohlc,
+        template: "S:{datapoint_symbol}|D:{datapoint_timestamp}|O:{datapoint_open}|H:{datapoint_high}|L:{datapoint_low}|C:{datapoint_close}|V:{datapoint_volume}"
+    },
+    {
+        input_variables: 
+        [
+            datapoint_symbol,
+            datapoint_timestamp,
+            datapoint_interval,
+            datapoint_text
+        ],
+        prompt_type: text,
+        template: "S:{datapoint_symbol}|D:{datapoint_timestamp}|T:{datapoint_text}"
+    },
+    {
+        input_variables: [d_prediction, w_prediction, m_prediction],
+        prompt_type: prediction,
+        template: "Predictions:\nD:{d_prediction}|W:{w_prediction}|M:{m_prediction}"
+    },
+    {
+        input_variables: [ohlc_window, text_window, prediction],
+        prompt_type: example,
+        template: "Price data:\n{ohlc_window}\nMarket News:\n{text_window}\nPrediction: {prediction}",
+    },
+    {
+        input_variables: [ohlc_format, text_format, examples],
+        prompt_type: system,
+        template: "You are a financial analysis expert, skilled in both technical and fundamental analysis. 
+        You can derive insightful predictions on financial asset performance from provided data, 
+        using a combination of historical information, current market news, and your analytical expertise.
+        Data Format:
+        Historical Price Data: {ohlc_format}
+        Market News: {text_format}
+        Special asset symbol for general news is `UNK`.
+        Prediction: D:Next day prediction|W:Next week|M:Next month
+        Possible predictions of future trend are: Increase/Decrease/Neutral
+        Please use the historical data and news provided to make informed predictions about the asset's 
+        performance over the specified timeframes. 
+        Your predictions should reflect a synthesis of the data trends, market news, and your financial analysis expertise.
+        Use following examples to understand the format of the data and learn how to make predictions:\n
+        {examples}"
+    },
+    {
+        input_variables: [user_request_data, symbol],
+        prompt_type: user_request,
+        template: "Historical Data:\n{user_request_data}\nWhat is your prediction for the asset {symbol} for the next interval?"
+    },
+    {
+        input_variables:
+        [
+            system,
+            user_request,
+        ],
+        prompt_type: request,
+        templates:
+        [
+            [system, "{system}"],
+            [human, "{user_request}"],
+        ]
+    },
+]
