@@ -11,7 +11,6 @@ from financegpt.data.data_connector import MongoDBConnector
 from financegpt.data.data_point import OhlcDataPoint
 from financegpt.data.data_point import TextDataPoint
 from financegpt.data.dataset import Dataset
-from financegpt.template.templates import SimpleTemplateMeta
 
 
 @pytest.fixture
@@ -90,8 +89,7 @@ def data_populated_db(
     db_connector: MongoDBConnector,
     test_ohlc_data_df: pd.DataFrame,
     test_text_data_df: pd.DataFrame,
-    ohlc_template_meta: SimpleTemplateMeta,
-    text_template_meta: SimpleTemplateMeta,
+    templates: dict,
 ):
     """
     Populates the database with data from the specified paths.
@@ -108,8 +106,7 @@ def data_populated_db(
     try:
         db_connector.store_dataset(text_dataset)
         db_connector.store_dataset(ohlc_dataset)
-        db_connector.store_templates([ohlc_template_meta])
-        db_connector.store_templates([text_template_meta])
+        db_connector.store_templates(list(templates.values()))
         yield db_connector
     finally:
         db_connector._client[db_connector._db_name][DATA_COLLECTION].delete_many({})

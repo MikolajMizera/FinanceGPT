@@ -14,7 +14,7 @@ class TemplateMeta(BaseModel):
     data that is contianed in a prompt (OHLC or text)."""
 
     input_variables: list[str]
-    prompt_type: Literal["ohlc", "text"]
+    prompt_type: str
 
     @abstractmethod
     def get_template(self) -> BasePromptTemplate:
