@@ -21,6 +21,11 @@ yf.pdr_override()
 
 DataPointType = TypeVar("DataPointType", bound=DataPoint)
 OHLC_REQUIRED_COLUMNS = ["Open", "High", "Low", "Close", "Volume"]
+PANDAS_INTERVALS: dict[IntervalType, str] = {
+    "D": "D",
+    "W": "W",
+    "H1": "h",
+}
 
 
 class DataAdapter(ABC, Generic[DataPointType]):
@@ -116,9 +121,19 @@ class CSVOhlcDataAdapter(DataAdapter[OhlcDataPoint]):
 
 
 class CSVTextDataAdapter(DataAdapter[TextDataPoint]):
-    def __init__(self, data_dir: str, **kwargs):
+    def __init__(self, data_dir: str, merge_by_interval: bool = False, **kwargs):
         super().__init__(**kwargs)
         self._data_dir = data_dir
+        self._merge_by_interval = merge_by_interval
+
+    def _group_by_interval(
+        self, data: pd.DataFrame, interval: IntervalType
+    ) -> pd.DataFrame:
+        grouper = pd.Grouper(freq=PANDAS_INTERVALS.get(interval, "D"))
+        grouped = (
+            data.groupby(grouper).apply(lambda x: "#".join(x["Text"])).to_frame("Text")
+        )
+        return grouped[grouped["Text"].str.len() > 0]
 
     def get_dataset(
         self,
@@ -131,6 +146,13 @@ class CSVTextDataAdapter(DataAdapter[TextDataPoint]):
         data: pd.DataFrame = pd.read_csv(path, parse_dates=True, **self.kwargs)
         dates_mask = data.index.to_series().between(start_date, end_date)
         data = data.loc[dates_mask]
+
+        if interval and self._merge_by_interval:
+            data = (
+                self._group_by_interval(data, interval)
+                if self._merge_by_interval
+                else data
+            )
 
         assert data.columns.to_list() == ["Text"]
 

@@ -61,3 +61,16 @@ def test_csv_text_adapter(tmp_path):
         "AAPL", datetime(2021, 8, 16), datetime(2021, 8, 17), "D"
     )
     assert len(dataset) == 2
+
+
+def test_merging_news_by_interval():
+    test_multiple_news_per_int = pd.DataFrame(
+        data={
+            "Text": ["This is a test"] * 2,
+        },
+        index=[datetime(2021, 8, 16), datetime(2021, 8, 16)],
+    )
+    adapter = CSVTextDataAdapter("")
+    merged = adapter._group_by_interval(test_multiple_news_per_int, "D")
+
+    assert len(merged) == 1

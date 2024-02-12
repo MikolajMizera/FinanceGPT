@@ -58,7 +58,9 @@ def get_dataset_text(
     symbols = _get_csv_files(data_dir) if not symbols else symbols
 
     symbols = [symbol.split(".")[0] for symbol in symbols]
-    text_data_adapter = CSVTextDataAdapter(data_dir, index_col="Date")
+    text_data_adapter = CSVTextDataAdapter(
+        data_dir, merge_by_interval=True, index_col="Date"
+    )
     return {
         symbol: text_data_adapter.get_dataset(
             symbol, DATA_START_DATE, DATA_END_DATE, interval
@@ -166,18 +168,43 @@ if __name__ == "__main__":
         logging.info(f"Loading environment variables from {args.env}")
         load_dotenv(dotenv_path=args.env)
 
-    ohlc_dataset = get_dataset_ohlc(args.ohlc_data, args.ohlc_symbols, "D")
-    text_dataset = get_dataset_text(args.text_data, args.text_symbols, "D")
+    ohlc_dataset, text_dataset = None, None
+    if args.ohlc_data is not None:
+        logging.info(f"Loading OHLC data from {args.ohlc_data}")
+        ohlc_dataset = get_dataset_ohlc(args.ohlc_data, args.ohlc_symbols, "D")
 
-    simple_templates = list(get_simple_templates(args.simple_prompt_templates))
-    chat_templates = list(get_chat_templates(args.chat_templates))
+    if args.text_data is not None:
+        logging.info(f"Loading text data from {args.text_data}")
+        text_dataset = get_dataset_text(args.text_data, args.text_symbols, "D")
+
+    simple_templates, chat_templates = [], []
+    if args.simple_prompt_templates is not None:
+        logging.info(
+            f"Loading simple prompt templates from {args.simple_prompt_templates}"
+        )
+        simple_templates = list(get_simple_templates(args.simple_prompt_templates))
+
+    if args.chat_templates is not None:
+        logging.info(f"Loading chat templates from {args.chat_templates}")
+        chat_templates = list(get_chat_templates(args.chat_templates))
+
     tempaltes = simple_templates + chat_templates
 
     with MongoDBConnector(**get_db_credentials()) as db_connection:
-        for symbol, dataset in {**ohlc_dataset, **text_dataset}.items():
-            logging.info(
-                f"Uploading dataset for {symbol} with {len(dataset)} data points..."
-            )
-            upload_dataset_to_db(db_connection, dataset)
-        logging.info(f"Uploading {len(tempaltes)} templates to the database...")
-        upload_templates_to_db(db_connection, tempaltes)
+        if ohlc_dataset is not None:
+            for dataset_name, dataset in ohlc_dataset.items():
+                upload_dataset_to_db(db_connection, dataset)
+                logging.info(
+                    f"Uploading {dataset_name} dataset of length {len(dataset)} "
+                    "to the database..."
+                )
+        if text_dataset is not None:
+            for dataset_name, dataset in text_dataset.items():
+                upload_dataset_to_db(db_connection, dataset)
+                logging.info(
+                    f"Uploading {dataset_name} dataset of length {len(dataset)} "
+                    "to the database..."
+                )
+        if tempaltes:
+            logging.info(f"Uploading {len(tempaltes)} templates to the database...")
+            upload_templates_to_db(db_connection, tempaltes)
