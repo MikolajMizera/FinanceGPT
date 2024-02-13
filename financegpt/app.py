@@ -20,7 +20,6 @@ from .template.templates import SimpleTemplateMeta
 
 
 class RequestModel(BaseModel):
-    user_msg: str
     historical_data_start_date: datetime
     historical_data_end_date: datetime
     historical_data_interval: IntervalType
@@ -96,6 +95,7 @@ class AppController:
                 ohlc_dataset=ohlc_historical_data, text_dataset=text_historical_data
             ),
             symbol=request.prediction_symbol,
+            prediction_end_date=request.prediction_end_date,
         )
         chat_request = self._get_chat_request(
             system_container=system_container, user_container=user_container
@@ -121,7 +121,9 @@ class AppController:
         :param interval: Interval of the requested data.
         :return: Requested data.
         """
-        return self._db.get_dataset(symbol, start_date, end_date, interval)
+        return self._db.get_dataset(
+            symbol, start_date, end_date, interval
+        ) + self._db.get_dataset("UNK", start_date, end_date, interval)
 
     def _check_dataset_length(self, dataset: Dataset[DataPoint]) -> None:
         """
@@ -212,12 +214,19 @@ class AppController:
         )
 
     def _get_user_request_data_container(
-        self, historical_data: TemplateDataContainer, symbol: str
+        self,
+        historical_data: TemplateDataContainer,
+        symbol: str,
+        prediction_end_date: datetime,
     ) -> TemplateDataContainer:
         return TemplateDataContainer(
             template=self._get_simple_template(type="user_request"),
             template_data=[
-                {"user_request_data": historical_data.format_prompt(), "symbol": symbol}
+                {
+                    "user_request_data": historical_data.format_prompt(),
+                    "symbol": symbol,
+                    "prediction_end_date": prediction_end_date.isoformat(),
+                }
             ],
         )
 

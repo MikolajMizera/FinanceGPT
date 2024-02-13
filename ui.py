@@ -1,6 +1,5 @@
 import logging
 from datetime import datetime
-from datetime import timedelta
 from os import environ
 
 import streamlit as st
@@ -37,22 +36,22 @@ controller = AppController(
 
 st.title("FinanceGPT")
 # UI Controls based on RequestModel
-user_msg = st.text_area("User Message", "Predict future performance of the asset.")
 historical_data_start_date = st.date_input(
-    "Historical Data Start Date", datetime.today() - timedelta(days=7)
+    "Historical Data Start Date", datetime(2017, 1, 1)
 )
-historical_data_end_date = st.date_input("Historical Data End Date", datetime.today())
-historical_data_interval = st.selectbox("Historical Data Interval", ALLOWED_INTERVALS)
+historical_data_end_date = st.date_input(
+    "Historical Data End Date", datetime(2017, 2, 1)
+)
+historical_data_interval = st.selectbox(
+    "Historical Data Interval", [ALLOWED_INTERVALS[1]], index=0
+)
 prediction_symbol = st.text_input("Prediction Symbol", "AAPL")
-prediction_end_date = st.date_input(
-    "Prediction End Date", datetime.today() + timedelta(days=7)
-)
+prediction_end_date = st.date_input("Prediction End Date", datetime(2017, 2, 10))
 
 if st.button("Submit"):
     # Create a request model instance
     assert historical_data_interval in ALLOWED_INTERVALS
     request_model = RequestModel(
-        user_msg=user_msg,
         historical_data_start_date=datetime.fromisoformat(
             historical_data_start_date.isoformat()
         ),
