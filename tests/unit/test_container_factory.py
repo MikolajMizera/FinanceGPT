@@ -6,11 +6,10 @@ from financegpt.data.data_point import OhlcDataPoint
 from financegpt.data.data_point import TextDataPoint
 from financegpt.data.dataset import Dataset
 from financegpt.template.data_container import TemplateDataContainerFactory
-from financegpt.template.templates import SimpleTemplateMeta
 
 
 @pytest.fixture
-def text_dataset_5days():
+def text_dataset_5days_weekend():
     return Dataset(
         data=[
             TextDataPoint(
@@ -24,11 +23,6 @@ def text_dataset_5days():
     )
 
 
-@pytest.fixture
-def container_factory_2d():
-    return TemplateDataContainerFactory(window_size=2)
-
-
 @pytest.mark.parametrize(
     "window,expected",
     [
@@ -40,32 +34,30 @@ def container_factory_2d():
     ],
 )
 def test_window_size(
-    window: int, expected: int, ohlc_dataset_5days: Dataset[OhlcDataPoint]
+    window: int,
+    expected: int,
+    ohlc_dataset_5days_weekend: Dataset[OhlcDataPoint],
+    templates: dict,
 ):
-    container_factory_2d = TemplateDataContainerFactory(window_size=window)
-    containers = container_factory_2d._get_next_data_points(ohlc_dataset_5days)
+    container_factory = TemplateDataContainerFactory(
+        window_size=window,
+        example_template=templates["example"],
+        ohlc_template=templates["ohlc"],
+        text_template=templates["text"],
+    )
+
+    date_index = [dp.timestamp for dp in ohlc_dataset_5days_weekend]
+    containers = container_factory._get_next_window(date_index)
     assert len(list(containers)) == expected
 
 
-@pytest.mark.parametrize(
-    "dataset_fixture,template_fixture",
-    [
-        ("ohlc_dataset_5days", "ohlc_template_meta"),
-        ("text_dataset_5days", "text_template_meta"),
-    ],
-)
 def test_container_factory(
-    request,
-    dataset_fixture: str,
-    template_fixture: str,
+    ohlc_dataset_5days_weekend: Dataset[OhlcDataPoint],
+    text_dataset_5days_weekend: Dataset[TextDataPoint],
     container_factory_2d: TemplateDataContainerFactory,
 ):
-    dataset = request.getfixturevalue(dataset_fixture)
-    template_metadata: SimpleTemplateMeta = request.getfixturevalue(template_fixture)
-
-    containers = container_factory_2d.create_containers(
-        template=template_metadata,
-        dataset=dataset,
+    containers = container_factory_2d.data_windows(
+        ohlc_dataset=ohlc_dataset_5days_weekend, text_dataset=text_dataset_5days_weekend
     )
     assert (
         "2021-01-04 00:00:00" in containers[-1].format_prompt()

@@ -53,7 +53,9 @@ if st.button("Submit"):
     assert historical_data_interval in ALLOWED_INTERVALS
     request_model = RequestModel(
         user_msg=user_msg,
-        historical_data_start_date=historical_data_start_date,
+        historical_data_start_date=datetime.fromisoformat(
+            historical_data_start_date.isoformat()
+        ),
         historical_data_end_date=historical_data_end_date,
         historical_data_interval=historical_data_interval,
         prediction_symbol=prediction_symbol,
