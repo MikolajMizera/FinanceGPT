@@ -13,9 +13,10 @@ from .data.dataset import Dataset
 from .llm.chain import LLMChainInterfaceFactory
 from .llm.utils import InferenceResults
 from .template.data_container import TemplateDataContainer
+from .template.data_container import TemplateDataContainerCollection
 from .template.data_container import TemplateDataContainerFactory
 from .template.templates import ChatTemplateMeta
-from .template.templates import TemplateMeta
+from .template.templates import SimpleTemplateMeta
 
 
 class RequestModel(BaseModel):
@@ -54,6 +55,13 @@ class AppController:
         logging.info(f"Example prompt data window size: {window_size}")
         self._window_size = window_size
 
+        self._container_factory = TemplateDataContainerFactory(
+            window_size=self._window_size,
+            example_template=self._get_simple_template(type="example"),
+            ohlc_template=self._get_simple_template(type="ohlc"),
+            text_template=self._get_simple_template(type="text"),
+        )
+
     def __del__(self):
         self._db.close()
 
@@ -73,15 +81,27 @@ class AppController:
             interval=request.historical_data_interval,
         )
         self._check_dataset_length(requested_historical_data)
+        ohlc_historical_data = self._filter_ohlc_dataset(requested_historical_data)
+        text_historical_data = self._filter_text_dataset(requested_historical_data)
 
-        template_data_containers = self._get_template_data_container(
-            request.user_msg,
-            request.prediction_symbol,
-            request.prediction_end_date,
-            requested_historical_data,
+        system_container = self._get_system_data_container(
+            examples=self._get_data_windows(
+                ohlc_dataset=ohlc_historical_data,
+                text_dataset=text_historical_data,
+                include_predictions=True,
+            )
+        )
+        user_container = self._get_user_request_data_container(
+            historical_data=self._container_factory.data(
+                ohlc_dataset=ohlc_historical_data, text_dataset=text_historical_data
+            ),
+            symbol=request.prediction_symbol,
+        )
+        chat_request = self._get_chat_request(
+            system_container=system_container, user_container=user_container
         )
 
-        inference_results = self._inference_llm(template_data_containers)
+        inference_results = self._inference_llm(chat_request)
         response = self._parse_results(inference_results)
         return response
 
@@ -115,78 +135,111 @@ class AppController:
                 f"{self._window_size}!"
             )
 
-    def _get_ohlc_template(self) -> TemplateMeta:
-        """
-        Returns OHLC template metadata, i.e. input variable names and information
-        about OHLC data format.
+    def _filter_ohlc_dataset(
+        self, dataset: Dataset[DataPoint]
+    ) -> Dataset[OhlcDataPoint]:
+        return Dataset([d for d in dataset if isinstance(d, OhlcDataPoint)])
 
-        :return: OHLC template metadata.
-        """
-        return self._db.get_templates(filter={"prompt_type": "ohlc"})[0]
+    def _filter_text_dataset(
+        self, dataset: Dataset[DataPoint]
+    ) -> Dataset[TextDataPoint]:
+        return Dataset([d for d in dataset if isinstance(d, TextDataPoint)])
 
-    def _get_text_template(self) -> TemplateMeta:
+    def _get_simple_template(self, type: str) -> SimpleTemplateMeta:
         """
-        Returns text template metadata, i.e. input variable names and information
-        about text data format.
+        Get a simple template by type from the database.
 
-        :return: Text template metadata.
+        : param type: Type of the template.
+        : return: Simple template.
         """
-        return self._db.get_templates(filter={"prompt_type": "text"})[0]
+        template = self._db.get_templates(filter={"prompt_type": type})[0]
+        assert isinstance(template, SimpleTemplateMeta)
+        return template
 
-    def _get_system_msg(self) -> str:
-        return (
-            "You are a helpful AI assistant. You are helping a human to predict"
-            "the stock market."
+    def _get_chat_template(self, type: str) -> ChatTemplateMeta:
+        """
+        Get a chat template by type from the database.
+
+        : param type: Type of the template.
+        : return: Chat template.
+        """
+        template = self._db.get_templates(filter={"prompt_type": type})[0]
+        assert isinstance(template, ChatTemplateMeta)
+        return template
+
+    def _get_data_windows(
+        self,
+        ohlc_dataset: Dataset[OhlcDataPoint],
+        text_dataset: Dataset[TextDataPoint],
+        include_predictions=False,
+    ) -> TemplateDataContainerCollection:
+        """
+        Get data windows from the datasets.
+
+        :param ohlc_dataset: Dataset containing OHLC data.
+        :param text_dataset: Dataset containing text data.
+        :param include_predictions: Include predictions in the data windows.
+        :return: Data windows.
+        """
+
+        return self._container_factory.data_windows(
+            ohlc_dataset=ohlc_dataset,
+            text_dataset=text_dataset,
+            include_pedictions=include_predictions,
         )
 
-    def _get_template_data_container(
-        self,
-        user_msg: str,
-        prediction_symbol: str,
-        prediction_date: datetime,
-        dataset: Dataset,
+    def _get_system_data_container(
+        self, examples: TemplateDataContainerCollection
     ) -> TemplateDataContainer:
         """
         Converts dataset and specification of the prompt into template data
         containers.
 
-        :param user_msg: User message.
-        :param prediction_symbol: Symbol of a financial instrument.
-        :param prediction_date: Date of the prediction, marks the end of the
-        prediction window.
-        :param dataset: Dataset containing historical data.
-
+        :a
         :return: Template data containers, i.e. data that will be used to fill
         in the template along with the template itself.
         """
-        container_factory = TemplateDataContainerFactory(window_size=self._window_size)
-        ohlc_containers = container_factory.create_containers(
-            template=self._get_ohlc_template(),
-            dataset=Dataset([d for d in dataset if isinstance(d, OhlcDataPoint)]),
-        )
-        text_containers = container_factory.create_containers(
-            template=self._get_text_template(),
-            dataset=Dataset([d for d in dataset if isinstance(d, TextDataPoint)]),
-        )
 
         return TemplateDataContainer(
-            template=ChatTemplateMeta(
-                input_variables=["prediction_symbol", "prediction_date"],
-                prompt_type="text",
-                templates=[
-                    (
-                        "system",
-                        f"{self._get_system_msg()}\nExamples:"
-                        f"{ohlc_containers.format_prompt()}\n"
-                        f"{text_containers.format_prompt()}",
-                    ),
-                    ("human", user_msg),
-                ],
-            ),
+            template=self._get_simple_template(type="system"),
             template_data=[
                 {
-                    "prediction_symbol": prediction_symbol,
-                    "prediction_date": str(prediction_date),
+                    "ohlc_format": self._container_factory.ohlc_template.template,
+                    "text_format": self._container_factory.text_template.template,
+                    "examples": examples.format_prompt(),
+                }
+            ],
+        )
+
+    def _get_user_request_data_container(
+        self, historical_data: TemplateDataContainer, symbol: str
+    ) -> TemplateDataContainer:
+        return TemplateDataContainer(
+            template=self._get_simple_template(type="user_request"),
+            template_data=[
+                {"user_request_data": historical_data.format_prompt(), "symbol": symbol}
+            ],
+        )
+
+    def _get_chat_request(
+        self,
+        system_container: TemplateDataContainer,
+        user_container: TemplateDataContainer,
+    ) -> TemplateDataContainer:
+        """
+        Converts user message into template data containers.
+
+        :param user_msg: User message.
+        :return: Template data containers, i.e. data that will be used to fill
+        in the template along with the template itself.
+        """
+        chat_template = self._get_chat_template(type="request")
+        return TemplateDataContainer(
+            template=chat_template,
+            template_data=[
+                {
+                    "system": system_container.format_prompt(),
+                    "user_request": user_container.format_prompt(),
                 }
             ],
         )
