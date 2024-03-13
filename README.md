@@ -1,6 +1,9 @@
 # FinanceGPT
 GPT model to support investment market research.
 
+![CI](https://github.com/MikolajMizera/FinanceGPT/actions/workflows/CI.yml/badge.svg?branch=develop)
+![Code Coverage](https://img.shields.io/badge/Coverage-94%25-green.svg)
+
 ## Description
 This repository contains the implementation of a system that enables fine-tuning and inference of Large Language Models (LLMs) using textual and OHLC (Open, High, Low, Close) data. This project utilizes various APIs for data fetching and the FastAPI framework for serving the model. The system supports integration with MongoDB for storing and retrieving datasets, and the Docker for containerization. The project also plans for future scalability through Kubernetes orchestration.
 
