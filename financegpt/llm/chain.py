@@ -25,7 +25,7 @@ class LLMChainInterface(BaseLLMChainInterface):
         )
 
 
-AvaiableOpenAIModels = ("gpt-3.5-turbo-instruct", "gpt-3.5-turbo-1106", "gpt-4-turbo")
+AvaiableOpenAIModels = ("gpt-3.5-turbo", "gpt-4")
 
 
 class LLMChainInterfaceFactory:

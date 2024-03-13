@@ -1,12 +1,15 @@
+import os
 from datetime import datetime
 from datetime import timedelta
 from typing import Any
 
 import pytest
+import yaml
 
 from financegpt.data.data_point import OhlcDataPoint
 from financegpt.data.data_point import TextDataPoint
 from financegpt.data.dataset import Dataset
+from financegpt.template.data_container import TemplateDataContainerFactory
 from financegpt.template.templates import ChatTemplateMeta
 from financegpt.template.templates import SimpleTemplateMeta
 
@@ -33,6 +36,17 @@ def text_data_point():
         interval="W",
         text="This is a test",
     )
+
+
+@pytest.fixture
+def templates() -> dict[str, SimpleTemplateMeta | ChatTemplateMeta]:
+    with open(f"{os.path.dirname(__file__)}/test_data/templates.yaml", "r") as fh:
+        return {
+            template["prompt_type"]: ChatTemplateMeta(**template)
+            if "templates" in template
+            else SimpleTemplateMeta(**template)
+            for template in yaml.safe_load(fh)
+        }
 
 
 @pytest.fixture
@@ -156,7 +170,19 @@ def text_chat_template_meta() -> ChatTemplateMeta:
 
 
 @pytest.fixture
-def ohlc_dataset_5days():
+def example_template_meta():
+    return SimpleTemplateMeta(
+        input_variables=["ohlc_window", "text_window", "prediction"],
+        prompt_type="example",
+        template=(
+            "Price data:\n{ohlc_window}\nMarket News:\n{text_window}\n"
+            "Prediction: {prediction}"
+        ),
+    )
+
+
+@pytest.fixture
+def ohlc_dataset_5days_weekend():
     return Dataset(
         data=[
             OhlcDataPoint(
@@ -171,6 +197,35 @@ def ohlc_dataset_5days():
             )
             for i in range(5)
         ]
+    )
+
+
+@pytest.fixture
+def ohlc_dataset_5days_weekday():
+    return Dataset(
+        data=[
+            OhlcDataPoint(
+                open=1.0,
+                high=2.0,
+                low=0.5,
+                close=1.5,
+                volume=10000,
+                timestamp=datetime(2021, 1, 4) + timedelta(days=i),
+                symbol="AAPL",
+                interval="W",
+            )
+            for i in range(5)
+        ]
+    )
+
+
+@pytest.fixture
+def container_factory_2d(templates: dict):
+    return TemplateDataContainerFactory(
+        window_size=2,
+        example_template=templates["example"],
+        ohlc_template=templates["ohlc"],
+        text_template=templates["text"],
     )
 
 

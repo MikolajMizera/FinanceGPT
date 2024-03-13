@@ -2,6 +2,7 @@ from abc import ABC
 from abc import abstractmethod
 from datetime import datetime
 from typing import Iterable
+from typing import Sequence
 
 from pymongo import MongoClient
 
@@ -43,11 +44,13 @@ class DBConnector(DataAdapter[DataPoint], ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def store_templates(self, templates: list[TemplateMeta]):
+    def store_templates(self, templates: Sequence[TemplateMeta]):
         raise NotImplementedError
 
     @abstractmethod
-    def get_templates(self, filter: dict[str, str] | None = None) -> list[TemplateMeta]:
+    def get_templates(
+        self, filter: dict[str, str] | None = None
+    ) -> Sequence[TemplateMeta]:
         raise NotImplementedError
 
 
@@ -71,10 +74,9 @@ class MongoDBConnector(DBConnector):
         self._client.close()
 
     def store_dataset(self, dataset: Dataset[DataPoint]):
-        for data_point in dataset:
-            self._client[self._db_name][DATA_COLLECTION].insert_one(
-                data_point.model_dump()
-            )
+        self._client[self._db_name][DATA_COLLECTION].insert_many(
+            (data_point.model_dump() for data_point in dataset.data)
+        )
 
     def _parse_datapoint(self, datapoints: Iterable[dict]) -> list[DataPoint]:
         return [
@@ -101,18 +103,20 @@ class MongoDBConnector(DBConnector):
         )
         return Dataset(data=self._parse_datapoint(data))
 
-    def store_templates(self, templates: list[TemplateMeta]):
+    def store_templates(self, templates: Sequence[TemplateMeta]):
         for template in templates:
             self._client[self._db_name][TEMPLATES_COLLECTION].insert_one(
                 template.model_dump()
             )
 
-    def _parse_templates(self, templates: Iterable[dict]) -> list[TemplateMeta]:
+    def _parse_templates(self, templates: Iterable[dict]) -> Sequence[TemplateMeta]:
         return [
             TemplateMetaFactory.create_tempate_meta(tempalte) for tempalte in templates
         ]
 
-    def get_templates(self, filter: dict[str, str] | None = None) -> list[TemplateMeta]:
+    def get_templates(
+        self, filter: dict[str, str] | None = None
+    ) -> Sequence[TemplateMeta]:
         return self._parse_templates(
             self._client[self._db_name][TEMPLATES_COLLECTION].find(
                 filter, projection={"_id": False}
