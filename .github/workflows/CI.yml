@@ -49,5 +49,5 @@ jobs:
         curl -L "$url" -o "$filename"
         unzip "$filename" -d examples
         python setup/mongo.py
-        python setup/populate_database.py -o examples/data/ohlc/ -t examples/data/text/ -s examples/templates/simple_templates.json -c examples/templates/chat_templates.json
+        python setup/populate_database.py -o examples/data/ohlc/ -n examples/data/text/ -t examples/templates/templates.yaml
         pytest tests/integration
