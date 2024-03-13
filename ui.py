@@ -18,7 +18,7 @@ logging.basicConfig(
 load_dotenv()
 ALLOWED_INTERVALS = ("W", "D", "H1")
 DEFAULT_WINDOW_SIZE = 5
-DEFAULT_LLM_MODEL = "gpt-3.5-turbo-1106"
+DEFAULT_LLM_MODEL = "gpt-3.5-turbo"
 
 connection_kwargs = {
     "username": environ["FINGPT_DB_USERNAME"],
