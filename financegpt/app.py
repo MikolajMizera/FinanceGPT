@@ -1,6 +1,7 @@
 import logging
 from datetime import datetime
 from typing import Any
+from typing import Sequence
 
 from pydantic import BaseModel
 
@@ -147,6 +148,21 @@ class AppController:
     ) -> Dataset[TextDataPoint]:
         return Dataset([d for d in dataset if isinstance(d, TextDataPoint)])
 
+    def _select_simple_template(
+        self, templates: Sequence[SimpleTemplateMeta]
+    ) -> SimpleTemplateMeta:
+        """
+        Selects a simple template from a list of templates. Currently picks the
+        first one, but can be extended to use more sophisticated logic.
+
+        :param templates: List of simple templates.
+        :return: Simple template.
+        """
+        try:
+            return templates[0]
+        except IndexError:
+            raise ValueError("No instances of `SimpleTemplateMeta` found in db!")
+
     def _get_simple_template(self, type: str) -> SimpleTemplateMeta:
         """
         Get a simple template by type from the database.
@@ -154,8 +170,12 @@ class AppController:
         : param type: Type of the template.
         : return: Simple template.
         """
-        template = self._db.get_templates(filter={"prompt_type": type})[0]
-        assert isinstance(template, SimpleTemplateMeta)
+        simple_templates = [
+            t
+            for t in self._db.get_templates(filter={"prompt_type": type})
+            if isinstance(t, SimpleTemplateMeta)
+        ]
+        template = self._select_simple_template(simple_templates)
         return template
 
     def _get_chat_template(self, type: str) -> ChatTemplateMeta:
