@@ -4,6 +4,8 @@ from typing import overload
 from typing import SupportsIndex
 from typing import TypeVar
 
+import pandas as pd
+
 from .data_point import DataPoint
 
 __all__ = ["Dataset"]
@@ -41,3 +43,9 @@ class Dataset(Generic[DataPointType]):
 
     def __add__(self, other: "Dataset[DataPointType]") -> "Dataset[DataPointType]":
         return Dataset(self._data + other.data)
+
+    def __repr__(self) -> str:
+        return repr(self._data)
+
+    def to_dataframe(self):
+        return pd.DataFrame([data_point.model_dump() for data_point in self._data])

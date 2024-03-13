@@ -26,9 +26,9 @@ test = [
     "Flake8-pyproject==1.2.3",
     "mypy==1.4.1",
     "python_dotenv==1.0.0",
-    "pytest-dotenv==0.5.2"
+    "pytest-dotenv==0.5.2",
+    "types-PyYAML==6.0.12.12"
 ]
-
 
 [tool.setuptools.dynamic]
 version = {attr = "financegpt.__version__"}
