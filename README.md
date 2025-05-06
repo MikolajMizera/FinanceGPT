@@ -1,3 +1,4 @@
+👷 Work in Progress :construction: 
 # FinanceGPT
 GPT model to support investment market research.
 
